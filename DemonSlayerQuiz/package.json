@@ -1,0 +1,10 @@
+{
+  "name": "DemonSlayerQuiz",
+  "main": "index.html",
+  "window": {
+    "title": "Kimetsu no Yaiba Game",
+    "width": 1280,
+    "height": 720,
+    "toolbar": false
+  }
+}
