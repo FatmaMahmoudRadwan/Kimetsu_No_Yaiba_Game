@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kimetsu no Yaiba: The Final Selection</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&family=Urbanist:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* تصفير الإعدادات الافتراضية للتحكم بالكامل بالأبعاد */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: #05020a;
+            color: #fff;
+            font-family: 'Noto Sans Arabic', 'Urbanist', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* الحاوية الرئيسية تمتد لتملأ الشاشة بالكامل 100% */
+        .game-wrapper {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.95);
+            overflow: hidden;
+            transition: background-image 0.8s ease-in-out;
+        }
+
+        /* طبقة التظليم السينمائي المحيطي */
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 25%, rgba(0, 0, 0, 0.85) 100%);
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* تأثير حركة أوراق الويستيريا المتساقطة ديناميكياً */
+        .petals-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .petal {
+            position: absolute;
+            background: linear-gradient(135deg, #b77bf4, #703ba6);
+            border-radius: 150% 0 150% 150%;
+            opacity: 0.7;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* شريط التحكم العلوي المتطور */
+        .top-control-bar {
+            position: absolute;
+            top: 25px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .btn-top {
+            background: rgba(20, 10, 30, 0.9);
+            border: 2px solid #b77bf4;
+            color: #fff;
+            padding: 10px 22px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 12px rgba(183, 123, 244, 0.3);
+        }
+
+        .btn-top:hover {
+            background: #b77bf4;
+            color: #000;
+            box-shadow: 0 0 25px #b77bf4;
+            transform: scale(1.05);
+        }
+
+        /* نظام القلوب وقفل الأقنعة */
+        .wisteria-heart-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mask-hearts-box {
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px;
+            border-radius: 40px;
+            border: 1px solid rgba(183, 123, 244, 0.5);
+        }
+
+        .mask-heart {
+            width: 50px;
+            height: 50px;
+            background-image: url('mask.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(0 0 10px red);
+            transition: 0.4s;
+        }
+
+        .mask-heart.lost {
+            filter: grayscale(1);
+            opacity: 0.25;
+            transform: rotate(20deg) scale(0.8);
+        }
+
+        .cooldown-text {
+            color: #ff4d4d;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 8px #000;
+        }
+
+        /* واجهات وسلايدات شاشات اللعب */
+        .game-slide {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 4;
+        }
+
+        .game-slide.active-slide {
+            display: block;
+        }
+
+        /* تموضع القائمة الجانبية في المساحة الفارغة جهة اليمين */
+        .main-menu-right {
+            position: absolute;
+            right: 10%;
+            top: 55%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            z-index: 5;
+        }
+
+        /* تصميم أزرار السيوف اليابانية الأسطورية (Katana Sword UI) */
+        .sword-btn-container {
+            position: relative;
+            width: 320px;
+            height: 55px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .sword-hilt {
+            width: 40px;
+            height: 25px;
+            background: linear-gradient(180deg, #e6b800 0%, #b39200 100%);
+            border: 2px solid #fff;
+            border-radius: 5px 0 0 5px;
+            box-shadow: -3px 3px 10px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 6;
+        }
+
+        .sword-blade {
+            flex-grow: 1;
+            height: 38px;
+            background: linear-gradient(180deg, #ffffff 0%, #a6a6a6 50%, #595959 100%);
+            border: 1px solid #404040;
+            border-radius: 0 30px 5px 0;
+            position: relative;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.6);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .sword-blade::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%; width: 60px; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transform: skewX(-30deg);
+            transition: none;
+        }
+
+        .sword-btn-container:hover .sword-blade::after {
+            left: 150%;
+            transition: left 0.5s ease-in-out;
+        }
+
+        .sword-btn-container:hover .sword-blade {
+            transform: scale(1.05) translateX(-10px);
+            filter: drop-shadow(0 0 15px rgba(183,123,244,0.8));
+            border-color: #b77bf4;
+        }
+
+        .sword-blade span {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f0816;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+            z-index: 7;
+        }
+
+        /* حاوية الأبعاد الخاصة بالقلعة اللانهائية والمستويات */
+        .inner-center-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            padding: 80px 20px 20px 20px;
+        }
+
+        .section-title {
+            color: #e6b800;
+            font-size: 32px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(230, 184, 0, 0.6);
+        }
+
+        .levels-container-scroll {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 15px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(12, 6, 18, 0.8);
+            border: 2px solid #b77bf4;
+            border-radius: 12px;
+        }
+
+        .level-tile {
+            aspect-ratio: 1;
+            background: rgba(35, 20, 50, 0.6);
+            border: 2px solid #443256;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #77658c;
+            border-radius: 8px;
+            cursor: not-allowed;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .level-tile.unlocked {
+            background: linear-gradient(135deg, #4c2582 0%, #170a29 100%);
+            border-color: #b77bf4;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .level-tile.unlocked:hover {
+            transform: translateY(-4px) scale(1.05);
+            border-color: #e6b800;
+            box-shadow: 0 0 15px #b77bf4;
+        }
+
+        .level-lock-icon {
+            font-size: 13px;
+            margin-top: 4px;
+            color: #e66b6b;
+        }
+
+        /* واجهة منطقة القتال والأسئلة مرنة للموبايل والـ Desktop */
+        .combat-zone {
+            background: rgba(8, 4, 12, 0.92);
+            border: 2px solid #b77bf4;
+            width: 90%;
+            max-width: 800px;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0,0,0,0.95);
+        }
+
+        .question-header-info {
+            display: flex;
+            justify-content: space-between;
+            color: #e6b800;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .question-main-text {
+            font-size: 24px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .answer-choice-btn {
+            background: rgba(38, 22, 56, 0.6);
+            border: 2px solid #443256;
+            color: #fff;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .answer-choice-btn:hover {
+            background: rgba(183, 123, 244, 0.25);
+            border-color: #b77bf4;
+            transform: translateY(-2px);
+        }
+
+        /* تعديل للموبايل والشاشات الصغيرة (Responsive Media Queries) */
+        @media (max-width: 768px) {
+            .main-menu-right {
+                right: 5%;
+                left: 5%;
+                top: 60%;
+                align-items: center;
+            }
+            .sword-btn-container {
+                width: 100%;
+                max-width: 300px;
+            }
+            .answers-grid {
+                grid-template-columns: 1fr; /* صف واحد في الموبايل */
+            }
+            .question-main-text {
+                font-size: 18px;
+            }
+            .levels-container-scroll {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* النوافذ العائمة المنبثقة للتحكم */
+        .player-modal, .game-overlay-menu {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 25;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: #150b21;
+            border: 2px solid #b77bf4;
+            padding: 35px;
+            border-radius: 15px;
+            text-align: center;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 0 35px rgba(183, 123, 244, 0.4);
+        }
+
+        .player-select, .player-input {
+            width: 100%; padding: 12px; margin-bottom: 18px;
+            background: #09040f; border: 1px solid #b77bf4;
+            color: #fff; border-radius: 6px; font-size: 16px; outline: none;
+            text-align: center;
+        }
+
+        .slash-effect {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 15;
+            display: none;
+        }
+        .slash-correct { background: rgba(0, 150, 255, 0.15); border: 4px solid #0096ff; animation: flash 0.3s ease-out; }
+        .slash-wrong { background: rgba(255, 0, 0, 0.2); border: 4px solid #ff0000; animation: flash 0.3s ease-out; }
+
+        @keyframes flash { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper" id="mainGameContainer" style="background-image: url('pic1.jpg');">
+    <div class="vignette"></div>
+    <div class="petals-container" id="petalsBox"></div>
+    <div class="slash-effect" id="slashVisual"></div>
+
+    <div class="top-control-bar">
+        <button class="btn-top" id="langBtn" onclick="actionToggleLanguage()">EN</button>
+        
+        <div class="wisteria-heart-wrapper" id="heartsLayout">
+            <div class="mask-hearts-box" id="heartsContainer"></div>
+            <div class="cooldown-text" id="cooldownTimerDisplay" style="display: none;"></div>
+        </div>
+
+        <button class="btn-top" id="menuBtn" style="display: none;" onclick="actionOpenOverlayMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </div>
+
+    <div class="game-slide active-slide" id="slideMainMenu">
+        <div class="main-menu-right">
+            <div class="sword-btn-container" onclick="triggerPlayerGate('start')">
+                <div class="sword-hilt"></div>
+                <div class="sword-blade"><span data-ar="ابدأ المعركة" data-en="START BATTLE">ابدأ المعركة</span></div>
+            </div>
+            <div class="sword-btn-container" onclick="triggerPlayerGate('score')">
+                <div class="sword-hilt"></div>
+                <div class="sword-blade"><span data-ar="صدارة الهدافين" data-en="HIGH SCORES">صدارة الهدافين</span></div>
+            </div>
+            <div class="sword-btn-container" onclick="actionOpenOverlayMenu()">
+                <div class="sword-hilt"></div>
+                <div class="sword-blade"><span data-ar="خيارات التنفس" data-en="OPTIONS">خيارات التنفس</span></div>
+            </div>
+            <div class="sword-btn-container" onclick="actionExitGame()">
+                <div class="sword-hilt"></div>
+                <div class="sword-blade"><span data-ar="انسحاب" data-en="EXIT">انسحاب</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-slide" id="slideLevelMap">
+        <div class="inner-center-layout">
+            <h2 class="section-title" id="txtTitleLevels" data-ar="خريطة القلعة اللانهائية" data-en="INFINITY CASTLE MAP">خريطة القلعة اللانهائية</h2>
+            <div class="levels-container-scroll" id="levelsGridBox"></div>
+        </div>
+    </div>
+
+    <div class="game-slide" id="slideCombatZone">
+        <div class="inner-center-layout">
+            <div class="combat-zone">
+                <div class="question-header-info">
+                    <span id="lblLevelNum">مستوى: 1</span>
+                    <span id="lblQuestionNum">سؤال: 1/5</span>
+                </div>
+                <div class="question-main-text" id="targetQuestionText">جاري استدعاء هجوم الشياطين...</div>
+                <div class="answers-grid" id="targetAnswersGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="player-modal" id="playerGateModal">
+        <div class="modal-box">
+            <h3 id="txtPopPlayerTitle" data-ar="تعريف قاتل الشياطين" data-en="IDENTIFY SLAYER">تعريف قاتل الشياطين</h3>
+            <select class="player-select" id="comboPlayersList" onchange="checkPlayerSelection()"></select>
+            <input type="text" class="player-input" id="txtNewPlayerName" placeholder="اكتب اسم لاعب جديد...">
+            <button class="btn-top" style="width: 100%;" onclick="actionConfirmPlayerGate()" id="txtBtnConfirm" data-ar="تأكيد العهد" data-en="CONFIRM">تأكيد العهد</button>
+        </div>
+    </div>
+
+    <div class="game-overlay-menu" id="overlayMenuPop">
+        <div class="overlay-menu-content modal-box">
+            <h3 style="color:#e6b800; margin-bottom: 15px;" data-ar="قائمة الدعم" data-en="SUPPORT MENU">قائمة الدعم</h3>
+            <button class="btn-top" style="width:100%; margin-bottom:10px;" onclick="actionToggleMusic()" id="txtBtnMusic" data-ar="الموسيقى: تعمل" data-en="Music: ON">الموسيقى: تعمل</button>
+            <button class="btn-top" style="width:100%; margin-bottom:10px;" onclick="actionToggleSFX()" id="txtBtnSFX" data-ar="المؤثرات: تعمل" data-en="SFX: ON">المؤثرات: تعمل</button>
+            <button class="btn-top" id="btnBackToMap" style="width:100%; margin-bottom:10px; display:none;" onclick="actionMenuGoToMap()" data-ar="عودة للخريطة" data-en="Back to Map">عودة للخريطة</button>
+            <button class="btn-top" id="btnBackToMain" style="width:100%; margin-bottom:10px; display:none;" onclick="actionMenuGoToMain()" data-ar="القائمة الرئيسية" data-en="Main Menu">القائمة الرئيسية</button>
+            <button class="btn-top" style="border-color:#e66b6b; width:100%;" onclick="actionCloseOverlayMenu()" data-ar="إغلاق" data-en="Close">إغلاق</button>
+            
+            <div id="highScoreViewArea" style="display:none; margin-top: 15px;">
+                <h4 style="color:#b77bf4;" data-ar="لوحة الصدارة" data-en="Top Scores">لوحة الصدارة</h4>
+                <div id="scoreBoardItems" style="text-align:right; max-height:150px; overflow-y:auto; padding:5px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<audio id="audioBg" loop><source src="op1.MP3" type="audio/mpeg"></audio>
+<audio id="audioStart"><source src="letsgo.MP3" type="audio/mpeg"></audio>
+<audio id="audioClick"><source src="sword.MP3" type="audio/mpeg"></audio>
+
+<script>
+  // ==========================================
+// 1. قاعدة بيانات الأسئلة المتدرجة والمثيرة
+// ==========================================
+const QUESTIONS_DATABASE = {
+    1: [
+        { text_ar: "ما هي المهنة الأساسية التي كان يمارسها تانجيرو لإعالة عائلته قبل الكارثة؟", text_en: "What was Tanjiro's primary job to support his family before the tragedy?", choices_ar: ["بيع الحطب", "بيع الفحم", "صيد الأسماك", "صناعة السلال"], choices_en: ["Wood selling", "Charcoal selling", "Fishing", "Basket making"], correct: 1 },
+        { text_ar: "ما هو الاسم الياباني الرسمي والأصلي لسلسلة أنمي قاتل الشياطين؟", text_en: "What is the official Japanese name for the Demon Slayer series?", choices_ar: ["Kimetsu no Yaiba", "Shingeki no Kyojin", "Jujutsu Kaisen", "Boku no Hero"], choices_en: ["Kimetsu no Yaiba", "Shingeki no Kyojin", "Jujutsu Kaisen", "Boku no Hero"], correct: 0 },
+        { text_ar: "من هو أول هاشيرا التقى به تانجيرو وحاول في البداية القضاء على نيزوكو؟", text_en: "Who is the first Hashira Tanjiro met, who initially tried to eliminate Nezuko?", choices_ar: ["رينغوكو كيوجورو", "أوزوي تينغين", "غيو توميوكا", "سانيمي شينازوغاوا"], choices_en: ["Kyojuro Rengoku", "Tengen Uzui", "Giyu Tomioka", "Sanemi Shinazugawa"], correct: 2 },
+        { text_ar: "كيف تمكن تانجيرو من حماية أخته نيزوكو من أشعة الشمس الحارقة أثناء السفر نهاراً؟", text_en: "How did Tanjiro protect Nezuko from sunlight while traveling during the day?", choices_ar: ["بوشاح أسود سميك", "بصندوق خشبي على ظهره", "بالمشي في الكهوف فقط", "بمظلة خاصة من الوستارية"], choices_en: ["Thick black scarf", "Wooden box on his back", "Walking in caves", "Wisteria umbrella"], correct: 1 },
+        { text_ar: "كم عدد أفراد عائلة كامادو الذين قُتلوا في الهجوم الأول قبل تحول نيزوكو؟", text_en: "How many members of the Kamado family were killed in the initial attack before Nezuko's transformation?", choices_ar: ["4 أفراد", "5 أفراد", "6 أفراد", "3 أفراد"], choices_en: ["4 members", "5 members", "6 members", "3 members"], correct: 1 }
+    ],
+    2: [
+        { text_ar: "إلى أي جبل أرسل غيو توميوكا تانجيرو ليتلقى تدريبه الشاق على يد أوكوداكي؟", text_en: "To which mountain did Giyu send Tanjiro to train under Sakonji Urokodaki?", choices_ar: ["جبل فوجي", "جبل ساغيري", "جبل ناتاغومو", "جبل يوشينو"], choices_en: ["Mount Fuji", "Mount Sagiri", "Mount Natagumo", "Mount Yoshino"], correct: 1 },
+        { text_ar: "ما هو القناع الذي يرتديه المدرب ساكونجي أوكوداكي دائماً لإخفاء وجهه؟", text_en: "What mask does Instructor Sakonji Urokodaki always wear to hide his face?", choices_ar: ["قناع ثعلب", "قناع تينغو أحمر", "قناع خنزير", "قناع هانيا شريطي"], choices_en: ["Fox mask", "Red Tengu mask", "Boar mask", "Hannya mask"], correct: 1 },
+        { text_ar: "ما هي العقبة النهائية والشرط التعجيزي الذي وضعه أوكوداكي لتسميح لتانجيرو بدخول الاختيار النهائي؟", text_en: "What was the final task Urokodaki set for Tanjiro to allow him into the Final Selection?", choices_ar: ["هزيمته في قتال حقيقي", "شق صخرة ضخمة بالسيف", "البقاء حياً في الغابة لشهر", "حبس أنفاسه تحت الماء"], choices_en: ["Defeating him in battle", "Splitting a giant boulder", "Surviving for a month", "Holding breath underwater"], correct: 1 },
+        { text_ar: "من هما الشخصيتان الشبحيتان اللتان ظهرتا لتانجيرو وساعدتاه في إتقان تنفس الماء لشق الصخرة؟", text_en: "Which two ghostly figures appeared to Tanjiro and helped him master Water Breathing?", choices_ar: ["سابيتو وماكومو", "غيو وكاناي", "يوشيرو وتامايو", "سوسامارو وياهابا"], choices_en: ["Sabito and Makomo", "Giyu and Kanae", "Yushiro and Tamayo", "Susamaru and Yahaba"], correct: 0 },
+        { text_ar: "ما هو النمط واللون المميز لوشاح الهاؤوري الذي يرتديه تانجيرو دائماً؟", text_en: "What is the pattern and color of the Haori jacket that Tanjiro always wears?", choices_ar: ["مثلثات صفراء وبيضاء", "مربعات خضراء وسوداء", "تموجات مياه زرقاء", "لهب أحمر وأصفر"], choices_en: ["Yellow triangles", "Green & black checkered", "Blue water waves", "Red & yellow flames"], correct: 1 }
+    ],
+    3: [
+        { text_ar: "أين يقام اختبار 'الاختيار النهائي' للانضمام رسمياً لفيلق قاتلي الشياطين؟", text_en: "Where is the 'Final Selection' exam held to officially join the Demon Slayer Corps?", choices_ar: ["جبل فوجيكاسان", "قصر الفراشة", "قرية صانعي السيوف", "مقر الفيلق السري"], choices_en: ["Mount Fujikasane", "Butterfly Mansion", "Swordsmith Village", "Secret Corps HQ"], correct: 0 },
+        { text_ar: "ما هو السبب وراء حبس الشياطين داخل جبل الاختيار النهائي وعدم قدرتها على الهروب؟", text_en: "Why are demons trapped inside the Final Selection mountain unable to escape?", choices_ar: ["حواجز سحرية من الفيلق", "إحاطة الجبل بزهور الوستارية", "سلاسل من حديد النيشيرين", "خوفهم من ضوء الشمس الدائم"], choices_en: ["Magic barriers", "Wisteria flowers surroundings", "Nichirin chains", "Constant sunlight fear"], correct: 1 },
+        { text_ar: "كم عدد الأيام التي يجب على المتقدمين البقاء فيها أحياء داخل جبل الاختيار النهائي لاجتياز الاختبار؟", text_en: "How many days must applicants survive inside the Final Selection mountain to pass?", choices_ar: ["3 أيام", "5 أيام", "7 أيام", "10 أيام"], choices_en: ["3 Days", "5 Days", "7 Days", "10 Days"], correct: 2 },
+        { text_ar: "ما هو الشيطان المرعب الذي كان يحقد على تلامذة أوكوداكي وقتل سابيتو وماكومو سابقاً؟", text_en: "What terrifying demon held a grudge against Urokodaki's disciples and killed Sabito and Makomo?", choices_ar: ["شيطان اليد", "شيطان المستنقع", "روي", "إنمو"], choices_en: ["Hand Demon", "Swamp Demon", "Rui", "Enmu"], correct: 0 },
+        { text_ar: "ما هي الميزة الفريدة التي منحتها التعويذة (أقنعة الثعالب) التي صنعها أوكوداكي لتلاميذه؟", text_en: "What unique effect did the protection masks (fox masks) made by Urokodaki have on his disciples?", choices_ar: ["زيادة سرعة الحركة", "قناع حماية ضد السموم", "كانت بمثابة إشارة تتبع للشيطان", "تمويه يخفيهم عن الشياطين"], choices_en: ["Speed boost", "Poison immunity", "Traced by Hand Demon", "Camouflage hide"], correct: 2 }
+    ],
+    4: [
+        { text_ar: "ما هو الاسم العلمي والمصطلح المطلق على السيوف التي يستخدمها قتلة الشياطين؟", text_en: "What is the specific name given to the swords used by Demon Slayers?", choices_ar: ["سيف الكاتانا السحري", "سيف النيشيرين", "سيف الوستارية", "سيف الهينوكامي"], choices_en: ["Magical Katana", "Nichirin Sword", "Wisteria Sword", "Hinokami Sword"], correct: 1 },
+        { text_ar: "ما هو اللون النادر وغير المتوقع الذي ظهر على سيف تانجيرو كامادو فور سحبه لأول مرة؟", text_en: "What rare and unexpected color appeared on Tanjiro Kamado's blade when he first drew it?", choices_ar: ["أحمر قرمزي", "أزرق مائي", "أسود داكن", "أصفر برقي"], choices_en: ["Crimson red", "Water blue", "Deep black", "Lightning yellow"], correct: 2 },
+        { text_ar: "ما هي الحاسة الخارقة والفريدة التي تميز بها تانجيرو منذ طفولته وتطورت أثناء التدريب؟", text_en: "What unique superhuman sense has characterized Tanjiro since childhood?", choices_ar: ["بصر حاد", "حاسة شم خارقة", "سمع دقيق جداً", "استشعار الاهتزازات"], choices_en: ["Sharp sight", "Superhuman smell", "Accurate hearing", "Vibration sensing"], correct: 1 },
+        { text_ar: "ما هو الكائن الذي يُمنح لكل مقاتل بعد اجتياز الاختيار النهائي لإيصال المهمات والرسائل؟", text_en: "What creature is assigned to each slayer after passing the Final Selection?", choices_ar: ["بومة بيضاء", "غراب كاسوجاي", "حمامة زاجلة", "صقر بري"], choices_en: ["White owl", "Kasugai Crow", "Homing pigeon", "Wild falcon"], correct: 1 },
+        { text_ar: "ما اسم صانع السيوف الغريب والمتحمس الذي يطارد تانجيرو دائماً بسبب كسر سيوفه؟", text_en: "What is the name of the eccentric swordsmith who constantly pursues Tanjiro?", choices_ar: ["هاغانيزوكا هوتارو", "تيتشيكاوا", "كاناماموري", "تيتشيكيو هانامو"], choices_en: ["Hotaru Haganezuka", "Tecchikawa", "Kanamamori", "Tecchikyo"], correct: 0 }
+    ],
+    5: [
+        { text_ar: "في أي مدينة التقى تانجيرو وجهاً لوجه لأول مرة بالشرير الرئيسي ومؤسس الشياطين موزان؟", text_en: "In which city did Tanjiro first meet the main antagonist, Muzan, face-to-face?", choices_ar: ["أساكوسا، طوكيو", "كيوتو القديمة", "يوكوهاما", "قرية صانعي السيوف"], choices_en: ["Asakusa, Tokyo", "Old Kyoto", "Yokohama", "Swordsmith Village"], correct: 0 },
+        { text_ar: "كيف تمكن موزان كيبوتسوجي من الهروب وتشتيت تانجيرو في لقائهما الأول بالمدينة المزدحمة؟", text_en: "How did Muzan Kibutsuji escape and distract Tanjiro during their first encounter?", choices_ar: ["بالاختفاء في الظلام", "بتدوير أحد المارة إلى شيطان", "بفتح بوابة البعد اللانهائي", "باستخدام الغبار السام"], choices_en: ["Vanishing in dark", "Turning a passerby to a demon", "Opening Infinity gate", "Using toxic dust"], correct: 1 },
+        { text_ar: "ما هي الطريقة الوحيدة والمطلقة التي يصنع بها موزان كيبوتسوجي شياطين جديدة؟", text_en: "What is the sole method by which Muzan Kibutsuji creates new demons?", choices_ar: ["إلقاء تعويذة سحرية", "حقن البشر بدمائه الخاصة", "إطعامهم زهوراً ملعونة", "عض رقبتهم مباشرة"], choices_en: ["Casting magic spell", "Injecting his own blood", "Feeding cursed flowers", "Biting their neck"], correct: 1 },
+        { text_ar: "من هي الطبيبة الشيطانة اللطيفة والمتمردة على موزان التي التقت بتانجيرو وساعدته في المدينة؟", text_en: "Who is the kind, anti-Muzan demon doctor who met and assisted Tanjiro in the city?", choices_ar: ["داكي", "تامايو", "ناكيمي", "موكوجو"], choices_en: ["Daki", "Tamayo", "Nakime", "Mukojo"], correct: 1 },
+        { text_ar: "ما هو اسم المساعد البشري الشاب الذي حولته الدكتورة تامايو إلى شيطان لحمايتها ويدين لها بالولاء المطلق؟", text_en: "What is the name of the young assistant whom Dr. Tamayo turned into a demon?", choices_ar: ["يوشيرو", "موراتا", "kazuumi", "سينجورو"], choices_en: ["Yushiro", "Murata", "Kazumi", "Senjuro"], correct: 0 }
+    ],
+    6: [
+        { text_ar: "ما هو السبب الغريب وراء تحول لون شعر زينيتسو أغاتسوما من الأسود إلى الأشقر الساطع؟", text_en: "What is the bizarre reason Zenitsu Agatsuma's hair turned from black to bright blonde?", choices_ar: ["مادة كيميائية أثناء التدريب", "تعرضه لصاعقة برق فوق شجرة", "صدمة نفسية من مدربه", "تناول طعام جبل سحري"], choices_en: ["Training chemical", "Struck by lightning on a tree", "Trauma from master", "Magical mountain food"], correct: 1 },
+        { text_ar: "كم عدد الهيئات والأشكال التي يتقنها ويعرفها زينيتسو من 'تنفس البرق'؟", text_en: "How many forms of 'Thunder Breathing' does Zenitsu master and know?", choices_ar: ["جميع الهيئات الستة", "3 هيئات فقط", "هيئة واحدة فقط", "4 هيئات"], choices_en: ["All 6 forms", "Only 3 forms", "Only 1 form", "4 forms"], correct: 2 },
+        { text_ar: "ما اسم الهيئة الأولى والوحيدة الخاطفة والمدمرة التي يشنها زينيتسو؟", text_en: "What is the name of the first and only lightning-fast form that Zenitsu unleashes?", choices_ar: ["وميض البرق والطي السريع", "رعد السماء الهائج", "زئير التنين البرقي", "أمطار الرعد الحادة"], choices_en: ["Thunderclap and Flash", "Raging Sky Thunder", "Lightning Dragon Roar", "Sharp Thunder Rain"], correct: 0 },
+        { text_ar: "كيف يستطيع زينيتسو القتال بكفاءة وقوة أسطورية رغم خوفه الشديد وجبنه في الحالة الطبيعية؟", text_en: "How does Zenitsu fight with legendary efficiency despite his extreme fear and cowardice?", choices_ar: ["عندما يتناول دواءً خاصاً", "عندما يفقد وعيه وينام تماماً", "عندما يغضب بشدة", "عندما تطلب منه نيزوكو ذلك"], choices_en: ["Taking special medicine", "When he falls asleep under pressure", "When he gets extremely angry", "When Nezuko asks him"], correct: 1 },
+        { text_ar: "ما هي الحاسة الاستثنائية والخارقة التي يتمتع بها زينيتسو منذ صغره وتساعده في كشف الشياطين؟", text_en: "What exceptional superhuman sense does Zenitsu possess that helps him detect demons?", choices_ar: ["حاسة شم قوية", "حاسة سمع خارقة ودقيقة", "بصر تلسكوبي", "إدراك مكاني باللمس"], choices_en: ["Strong smell sense", "Superhuman accurate hearing", "Telescopic vision", "Spatial touch perception"], correct: 1 }
+    ],
+    7: [
+        { text_ar: "ماذا يرتدي المقاتل الهمجي والمندفع إينوسوكي هاشيبارا على رأسه بشكل دائم وقاطع؟", text_en: "What does the wild slayer Inosuke Hashibira permanently wear on his head?", choices_ar: ["قناع ذئب جبلي", "قناع رأس خنزير بري", "عظام جمجمة دب", "خوذة حديدية ثقيلة"], choices_en: ["Mountain wolf mask", "Wild boar head mask", "Bear skull bones", "Heavy iron helmet"], correct: 1 },
+        { text_ar: "كيف تمكن إينوسوكي من تعلم تقنيات القتال وابتكار 'تنفس الوحش'؟", text_en: "How did Inosuke learn combat techniques and create 'Beast Breathing'?", choices_ar: ["على يد هاشيرا الرياح", "علم نفسه ونشأ بين الحيوانات", "بقراءة كتب قديمة", "بتدريب من جده"], choices_en: ["Under Wind Hashira", "Self-taught raised by animals", "Reading old books", "Grandfather's training"], correct: 1 },
+        { text_ar: "كم عدد السيوف التي يستخدمها إينوسوكي هاشيبارا في أسلوب قتاله الفريد؟", text_en: "How many swords does Inosuke Hashibira use in his unique combat style?", choices_ar: ["سيف واحد ضخم", "ثلاثة سيوف", "سيفان اثنان", "خناجر صغيرة متعددة"], choices_en: ["One massive sword", "Three swords", "Two swords", "Multiple small daggers"], correct: 2 },
+        { text_ar: "كيف يجعل إينوسوكي حد سيوف النيشيرين الخاصة به مسننة ومشرشرة بشكل غريب؟", text_en: "How does Inosuke make the edges of his Nichirin blades jagged and serrated?", choices_ar: ["يطلب من صانع سيوفه فعل ذلك", "يضرب شفراتها بحجر ثقيل عمداً", "بسبب مادة كيميائية حارقة", "السيوف صُنعت هكذا طبيعياً"], choices_en: ["Asks his swordsmith", "Chips them with a heavy rock", "Acid chemical reaction", "Crafted naturally like this"], correct: 1 },
+        { text_ar: "ما هي الميزة الجسدية الصادمة التي يمتلكها إينوسوكي خلف قناع الخنزير العنيف؟", text_en: "What shocking physical feature does Inosuke possess behind his violent boar mask?", choices_ar: ["وجه مليء بالندوب المرعبة", "وجه أنثوي ناعم وجميل جداً", "عيون جاحظة مخيفة", "لا يمتلك أي شعر رأس"], choices_en: ["Face full of scary scars", "Very soft and beautiful feminine face", "Scary bulging eyes", "Completely bald head"], correct: 1 }
+    ],
+    8: [
+        { text_ar: "ما اسم الشيطان العازف وصاحب الطبول المزروعة في جسده والذي واجهه الأبطال داخل المنزل المتحرك؟", text_en: "What is the name of the drum-playing demon with drums embedded in his body?", choices_ar: ["كيوغاي", "روي", "إنمو", "غيوكو"], choices_en: ["Kyogai", "Rui", "Enmu", "Gyokko"], correct: 0 },
+        { text_ar: "ماذا يحدث لغرف المنزل في فن الدم الشيطاني الخاص بكيوغاي عند ضرب الطبلة الموجودة على كتفه الأيمن؟", text_en: "What happens to the rooms in Kyogai's Blood Demon Art when he strikes the right shoulder drum?", choices_ar: ["تتقدم الغرفة للأمام", "تدور الغرفة إلى اليمين", "تشن هجوماً بمخالب", "تنقلب الغرفة رأساً على عقب"], choices_en: ["Room moves forward", "Room rotates to the right", "Launches a claw attack", "Turns completely upside down"], correct: 1 },
+        { text_ar: "ما هي الرتبة السابقة التي كان يحملها شيطان الطبول كيوغاي قبل أن يجرده موزان من منصبه لضعفه؟", text_en: "What was the former rank held by the Drum Demon Kyogai before Muzan stripped him of it?", choices_ar: ["القمر الأعلى السادس", "القمر الأدنى السادس", "القمر الأدنى الرابع", "القمر الأعلى الخامس"], choices_en: ["Upper Moon 6", "Lower Moon 6", "Lower Moon 4", "Upper Moon 5"], correct: 1 },
+        { text_ar: "ما هو الشيء الذي داس عليه أحد الشياطين بالمنزل وأثار غضب تانجيرو الشديد لعدم احترام مجهود الآخرين؟", text_en: "What did a demon step on in the house that infuriated Tanjiro due to disrespect?", choices_ar: ["أوراق رواية كتبها كيوغاي", "لوحة فنية قديمة", "لعبة طفل صغير", "قناع أوكوداكي"], choices_en: ["Manuscript paper of Kyogai", "An old art painting", "A small kid's toy", "Urokodaki's mask"], correct: 0 },
+        { text_ar: "من الذي دافع عن صندوق نيزوكو وتلقى ضرباً مبرحاً من إينوسوكي دون أن يرد الضربة حماية لعهد تانجيرو؟", text_en: "Who defended Nezuko's box and took a severe beating from Inosuke without fighting back?", choices_ar: ["غيو توميوكا", "زينيتسو أغاتسوما", "موراتا", "أوي كانزاكي"], choices_en: ["Giyu Tomioka", "Zenitsu Agatsuma", "Murata", "Aoi Kanzaki"], correct: 1 }
+    ],
+    9: [
+        { text_ar: "ما اسم الجبل الملعون الذي أُرسل إليه الرفاق ووجدو عائلة كاملة من شياطين العناكب تسيطر عليه؟", text_en: "What is the name of the cursed mountain ruled by a spider demon family?", choices_ar: ["جبل ساغيري", "جبل ناتاغومو", "جبل فوجي", "جبل اساما"], choices_en: ["Mount Sagiri", "Mount Natagumo", "Mount Fuji", "Mount Asama"], correct: 1 },
+        { text_ar: "ما هو السلاح والأداة الأساسية التي يستخدمها شيطان القمر الأدنى الخامس 'روي' للتحكم بضحاياه وتقطيع السيوف؟", text_en: "What is the primary weapon used by Lower Moon 5 'Rui' to control victims?", choices_ar: ["سم عناكب سائل", "خيوط عنكبوتية حادة بالفن دمي", "شفرات خفية", "شبكات صيد عملاقة"], choices_en: ["Liquid spider poison", "Sharp Blood Demon Art threads", "Hidden blades", "Giant fishing nets"], correct: 1 },
+        { text_ar: "ما هي التقنية التنفسية الأسطورية الموروثة من عائلة تانجيرو والتي أيقظها فجأة في قتاله اليائس ضد روي؟", text_en: "What legendary breathing technique inherited from Tanjiro's family did he awaken against Rui?", choices_ar: ["تنفس الشمس (هينوكامي كاغورا)", "تنفس البرق", "تنفس اللهب", "تنفس الضباب"], choices_en: ["Sun Breathing (Hinokami Kagورا)", "Thunder Breathing", "Flame Breathing", "Mist Breathing"], correct: 0 },
+        { text_ar: "How did Nezuko save Tanjiرو ومساعدته لقطع خيوط روي في اللحظة الأخيرة؟", text_en: "How did Nezuko save Tanjiro and help him cut Rui's threads at the last second?", choices_ar: ["بزيادة حجم جسدها", "بإيقاظ فن الدم الشيطاني: انفجار الدم", "بعض خيوط روي", "بصناعة درع خشبي"], choices_en: ["Increasing her size", "Awakening Blood Demon Art: Exploding Blood", "Biting Rui's threads", "Making wooden shield"], correct: 1 },
+        { text_ar: "من هو الهاشيرا الذي وصل في الوقت المناسب وأنقذ إينوسوكي من الموت المحقق على يد شيطان الأب العنكبوت؟", text_en: "Which Hashira arrived just in time to save Inosuke from certain death by the Spider Father Demon?", choices_ar: ["شينوبو كوتشو", "غيو توميوكا", "رينغوكو كيوجورو", "سانيمي شينازوغاوا"], choices_en: ["Shinobu Kocho", "Giyu Tomioka", "Kyojuro Rengoku", "Sanemi Shinazugawa"], correct: 1 }
+    ],
+    10: [
+        { text_ar: "ما اسم المقر الطبي والاستشفائي التابع لفيلق قاتلي الشياطين الذي يديره هاشيرا الحشرات؟", text_en: "What is the name of the medical recovery headquarters run by the Insect Hashira?", choices_ar: ["قصر الفراشة", "معهد الوستارية", "عيادة تامايو", "قلعة الماء"], choices_en: ["Butterfly Mansion", "Wisteria Institute", "Tamayo Clinic", "Water Castle"], correct: 0 },
+        { text_ar: "ما اسم فتاة الحشرات والمسؤولة والممرضة الرئيسية التي تدير تدريبات إعادة التأهيل للأبطال بعصبية وحزم؟", text_en: "What is the name of the main nurse and manager who runs the rehabilitation training?", choices_ar: ["كاناو تسويوري", "أوي كانزاكي", "كاناي كوتشو", "ميتسوري كانروجي"], choices_en: ["Kanao Tsuyuri", "Aoi Kanzaki", "Kanae Kocho", "Mitsuri Kanroji"], correct: 1 },
+        { text_ar: "ما هي التقنية المتقدمة التي توجب على تانجيرو وزينيتسو وإينوسوكي تعلمها لتفجير القرع العملاق بأنفاسهم؟", text_en: "What advanced technique did the trio have to master to explode giant gourds using their breath?", choices_ar: ["تنفس اللهب المطلق", "التركيز الكامل المستمر", "الهيئة السابعة السرية", "تنفس الوحش المطلق"], choices_en: ["Flame Breathing Style", "Total Concentration: Constant", "Secret 7th Form", "Ultimate Beast Breathing"], correct: 1 },
+        { text_ar: "كيف كانت الفتاة الموهوبة كاناو تسويوري تتخذ قراراتها الشخصية والكلامية قبل أن تلتقي بتانجيرو؟", text_en: "How did the talented Kanao Tsuyuri make personal decisions before meeting Tanjiro?", choices_ar: ["بسؤال شينوبو", "برمية عملة معدنية", "بقراءة النجوم", "بانتظار إشارة من غرابها"], choices_en: ["Asking Shinobu", "Flipping a coin", "Reading stars", "Waiting for her crow"], correct: 1 },
+        { text_ar: "من هما الأختان الهاشيرا اللتان اشترتا كاناو تسويوري في طفولتها وأنقذتاها من العبودية والتعذيب؟", text_en: "Which two Hashira sisters bought Kanao Tsuyuri in her childhood, saving her from slavery?", choices_ar: ["شينوبو وكاناي كوتشو", "ميتسوري وأوي", "تامايو ونيزوكو", "كوتو وماكومو"], choices_en: ["Shinobu and Kanae Kocho", "Mitsuri and Aoi", "Tamayo and Nezuko", "Koto and Makomo"], correct: 0 }
+    ],
+    11: [
+        { text_ar: "من هو القائد والزعيم الأعلى لفيلق قاتلي الشياطين الذي يحترمه جميع الهاشيرا كأب لهم؟", text_en: "Who is the supreme leader of the Demon Slayer Corps whom all Hashira deeply respect?", choices_ar: ["كاغايا أوبوياشيكي", "ساكونجي أوكوداكي", "يوريتشي تسوغيكوني", "شينجورو رينغوكو"], choices_en: ["Kagaya Ubuyashiki", "Sakonji Urokodaki", "Yoriichi Tsugikuni", "Shinjuro Rengoku"], correct: 0 },
+        { text_ar: "ما هو المرض واللعنة الوراثية التي يظهر أثرها على وجه القائد كاغايا أوبوياشيكي؟", text_en: "What is the hereditary disease and curse visible on Leader Kagaya Ubuyashiki's face?", choices_ar: ["حروق معركة قديمة", "مرض جلدي وراثي قاتل مسبق", "إصابة من موزان", "عمى ناتج عن طاقة السيف"], choices_en: ["Old battle burns", "Fatal skin disease spreading slowly", "Injury from Muzan", "Sword energy blindness"], correct: 1 },
+        { text_ar: "من هو الهاشيرا العنيف والمندفع الذي جرح نيزوكو وسكب دماءه أمامها ليثبت للقائد أنها شيطان كاسر؟", text_en: "Which aggressive Hashira injured Nezuko and spilled his blood before her to prove she is a savage demon?", choices_ar: ["غيو توميوكا", "سانيمي شينازوغاوا", "أوباناي إيغورو", "غيومي هيميجيما"], choices_en: ["Giyu Tomioka", "Sanemi Shinazugawa", "Obanai Iguro", "Gyomei Himejima"], correct: 1 },
+        { text_ar: "ما هو الشيء النادر والفريد الذي يميز دماء هاشيرا الرياح سانيمي ويجعل الشياطين تفقد تركيزها وتثمل؟", text_en: "What rare and unique feature characterizes Wind Hashira Sanemi's blood, intoxicating demons?", choices_ar: ["دماء سامة من نباتات", "نوع دماء نادر جداً ومسكر (Marechi)", "دماء مشبعة بالحديد", "دماء مغلية حارقة"], choices_en: ["Toxic plant blood", "Rare intoxicating blood type (Marechi)", "Iron saturated blood", "Boiling burning blood"], correct: 1 },
+        { text_ar: "ما هي العقوبة أو الشرط الذي وضعه أوكوداكي وتوميوكا في رسالتهما للقائد في حال قامت نيزوكو بمهاجمة أي بشري؟", text_en: "What penalty did Urokodaki and Giyu pledge in their letter if Nezuko ever attacked a human?", choices_ar: ["طردهما من الفيلق", "سيبقران بطنيهما وينتحران تضحية", "حبس نيزوكو للأبد", "تسليم أنفسهما لموزان"], choices_en: ["Expulsion from Corps", "Commit suicide via Seppuku", "Imprison Nezuko forever", "Surrender to Muzan"], correct: 1 }
+    ],
+    12: [
+        { text_ar: "ماذا فعل موزان كيبوتسوجي بالأقمار الدنيا في القلعة اللانهائية بعد هزيمة روي وموت غيو توميوكا له؟", text_en: "What did Muzan do to the Lower Moons in the Infinity Castle after Rui's defeat?", choices_ar: ["قام بزيادة طاقتهم بدمائه", "غضب وقام بإبادتهم جميعاً ما عدا واحداً", "أرسلهم لتدريب شاق", "عين كوكوشيبو قائداً عليهم"], choices_en: ["Increased power with blood", "Purged and slaughtered all except one", "Sent them to harsh training", "Appointed Kokushibo as leader"], correct: 1 },
+        { text_ar: "من هو الشيطان التابع الوحيد من الأقمار الدنيا الذي نجا من مجزرة موزان وأعطاه فرصة أخيرة لقتل تانجيرو؟", text_en: "Who was the only Lower Moon demon who survived Muzan's purge and was given a final chance?", choices_ar: ["كيوغاي", "إنمو (القمر الأدنى الأول)", "واكورابا", "روكورو"], choices_en: ["Kyogai", "Enmu (Lower Moon 1)", "Wakuraba", "Rokuro"], correct: 1 },
+        { text_ar: "ما هي الهيئة التنفسية والأسلوب السحري القاتل الذي تستخدمه شينوبو كوتشو لتعويض عدم قدرتها البدنية؟", text_en: "What breathing style does Shinobu Kocho use to compensate for her inability to decapitate?", choices_ar: ["تنفس الأفاعي الحاد", "تنفس الحشرات المعتمد على سم الوستارية", "تنفس الزهرة الخاطف", "تنفس الضباب السام"], choices_en: ["Sharp Snake Breathing", "Insect Breathing based on Wisteria poison", "Flash Flower Breathing", "Toxic Mist Breathing"], correct: 1 },
+        { text_ar: "ما اسم الشيطان التابع لموزان الذي يتحكم بحركة وأبعاد غرف القلعة اللانهائية بعزف آلة البيوا؟", text_en: "What is the name of the demon who controls the spatial movements of the Infinity Castle by playing the Biwa?", choices_ar: ["ناكيمي", "تامايو", "سوسامارو", "موكاجو"], choices_en: ["Nakime", "Tamayo", "Susamaru", "Mukajo"], correct: 0 },
+        { text_ar: "ما هي الميزة الفريدة والقاتلة في شكل وتصميم سيف النيشيرين الخاص بهاشيرا الحشرات شينوبو كوتشو؟", text_en: "What is the unique and lethal feature in the design of Insect Hashira Shinobu's Nichirin blade?", choices_ar: ["سيف مرن كالسوط", "سيف رفيع مقطوع الشفرة لحقن السم", "سيف مزدوج الشفرات", "سيف من دون مقبض يدوي"], choices_en: ["Flexible whip-like sword", "Thinned blade with stinger tip for poison", "Double-edged sword", "Handle-less sword"], correct: 1 }
+    ],
+    13: [
+        { text_ar: "ما اسم القطار الغامض والمشؤوم الذي استقله الأبطال للتحقيق في اختفاء أكثر من 40 راكباً؟", text_en: "What is the name of the mysterious train the heroes boarded to investigate disappearances?", choices_ar: ["قطار أساكوسا", "قطار موغن (Mugen Train)", "قطار طوكيو السريع", "قطار ناتاغومو الجبلي"], choices_en: ["Asakusa Train", "Mugen Train", "Tokyo Express", "Natagumo Mountain Train"], correct: 1 },
+        { text_ar: "ما هي الكلمة الشهيرة التي كان هاشيرا اللهب رينغوكو يصرخ بها بحماس شديد أثناء تناول علب الطعام؟", text_en: "What famous word did Flame Hashira Rengoku enthusiastically shout while eating lunch boxes?", choices_ar: ["أوميشي!", "أومايوا!", "أوماي! (لذيذ!)", "سايونارا!"], choices_en: ["Umeishi!", "Omaewa!", "Tasty! (Umai!)", "Sayonara!"], correct: 2 },
+        { text_ar: "ما هي الخدعة التنويمية وفن الدم الشيطاني الذي شنه إنمو على ركاب ومقاتلي القطار فور دخولهم؟", text_en: "What hypnotic Blood Demon Art trick did Enmu unleash on the train passengers?", choices_ar: ["خيوط تشل حركتهم", "دمج تذاكر القطار بدمائه للنوم", "ضباب خانق", "غاز منبعث من المحرك"], choices_en: ["Paralyzing threads", "Fusing train tickets with blood to induce sleep", "Choking mist", "Engine gas emission"], correct: 1 },
+        { text_ar: "كيف استطاع تانجيرو كسر تعويذة حلم إنمو والاستيقاظ في الواقع لإنقاذ بقية المقاتلين؟", text_en: "How did Tanjiro break Enmu's dream spell and wake up in reality to save the others?", choices_ar: ["بضرب رأسه بالقطار", "بقطع عنقه ونحر نفسه داخل الحلم عمداً", "بحرق الصندوق", "بمساعدة غراب كاسوجاي"], choices_en: ["Banging head on train", "Beheading himself inside the dream voluntarily", "Burning the box", "Using Kasugai Crow assistance"], correct: 1 },
+        { text_ar: "ما هو الاندماج المرعب الذي قام به شيطان القمر الأدنى الأول إنمو بعد فشل تلاميذه البشر؟", text_en: "What terrifying fusion did Lower Moon 1 Enmu perform after his human lackeys failed?", choices_ar: ["تحول إلى عملاق طائر", "دمج جسده بالكامل مع هيكل قطار موغن", "اندمج مع موزان", "تحول إلى سائل سام"], choices_en: ["Turned to flying giant", "Fused his body with the entire Mugen Train structure", "Fused with Muzan", "Turned to toxic fluid"], correct: 1 }
+    ],
+    14: [
+        { text_ar: "أين يقع النخاع الشوكي والعنق الحقيقي للشيطان إنمو بعد أن اندمج بجسده مع قطار موغن؟", text_en: "Where is the true spinal cord and neck of the demon Enmu located after fusing with the train?", choices_ar: ["في مقصورة القيادة الأمامية", "أسفل أرضية محرك القطار في المقدمة", "في عجلات القطار الخلفية", "في سقف المقصورة الأخيرة"], choices_en: ["In front driver cabin", "Beneath the train engine floor in the front", "In rear train wheels", "On last cabin ceiling"], correct: 1 },
+        { text_ar: "من هو المقاتل الذي استخدم 'تنفس الوحش: الوعي المكاني' لتحديد مكان رقبة إنمو بدقة تحت المحرك؟", text_en: "Which slayer used 'Beast Breathing: Spatial Awareness' to precisely locate Enmu's neck?", choices_ar: ["تانجيرو كامادو", "إينوسوكي هاشيبارا", "زينيتسو أغاتسوما", "رينغوكو كيوجورو"], choices_en: ["Tanjiro Kamado", "Inosuke Hashibira", "Zenitsu Agatsuma", "Kyojuro Rengoku"], correct: 1 },
+        { text_ar: "كم عدد الركاب والمقاتلين الذين ماتوا أو قُتلوا داخل قطار موغن بفضل حماية وتضحية رينغوكو؟", text_en: "How many passengers died inside the Mugen Train thanks to Rengoku and the heroes?", choices_ar: ["10 ركاب", "5 ركاب", "صفر (لم يمت أي راكب)", "20 راكباً"], choices_en: ["10 passengers", "5 passengers", "Zero (No passengers died)", "20 passengers"], correct: 2 },
+        { text_ar: "ما هو الأسلوب التنفسي والهيئة الحاسمة التي استخدمها تانجيرو لقطع عظم المحرك الضخم للشيطان إنمو؟", text_en: "Which breathing style and crucial form did Tanjiro use to cut through Enmu's massive engine bone?", choices_ar: ["تنفس الماء: الهيئة العاشرة", "تنفس الشمس: رقصة هينوكامي كاغورا", "تنفس البرق: الهيئة الأولى", "تنفس اللهب: الهيئة الثانية"], choices_en: ["Water Breathing: 10th Form", "Sun Breathing: Hinokami Kagura (Clear Blue Sky)", "Thunder Breathing: 1st Form", "Flame Breathing: 2nd Form"], correct: 1 },
+        { text_ar: "ما اسم شقيق هاشيرا اللهب رينغوكو الأصغر واللطيف الذي كان ينتظر عودته في المنزل? ", text_en: "What is the name of the kind younger brother of Flame Hashira Rengoku waiting for his return?", choices_ar: ["سينجورو رينغوكو", "شينجورو", "تيتسوهيكو", "جينيا"], choices_en: ["Senjuro Rengoku", "Shinjuro", "Tetsuhiko", "Genya"], correct: 0 }
+    ],
+    15: [
+        { text_ar: "من هو شيطان الرتبة العليا المرعب والقوي الذي ظهر فجأة بعد تحطم القطار ليدمر النصر؟", text_en: "Which terrifying Upper Moon demon suddenly appeared after the train crash to destroy the victory?", choices_ar: ["كوكوشيبو", "دوما", "أكازا (القمر الأعلى الثالث)", "غيوتارو"], choices_en: ["Kokushibo", "Doma", "Akaza (Upper Moon 3)", "Gyutaro"], correct: 2 },
+        { text_ar: "ما هو العرض المغري المتكرر الذي كان أكازا يصر على تقديمه لهاشيرا اللهب رينغوكو أثناء قتالهما؟", text_en: "What tempting offer did Akaza repeatedly present to Flame Hashira Rengoku during their fight?", choices_ar: ["أن يسلمه سيفه", "أن يصبح شيطاناً مثله ليعيش للأبد", "أن يتركه يقتل تانجيرو", "أن يدله على مكان القائد"], choices_en: ["To surrender his sword", "To become a demon to live forever", "To let him kill Tanjiro", "To reveal leader's location"], correct: 1 },
+        { text_ar: "ما هي الوصية والعبارة الحماسية الخالدة والأخيرة التي قالها رينغوكو لتانجيرو قبل لحظات من وفاته؟", text_en: "What was the timeless, final inspirational quote that Rengoku told Tanjiro moments before his death?", choices_ar: ["عد إلى جبل ساغيري", "احرق قلبك وتجاوز حدودك", "دمر موزان فوراً", "حافظ على سيفك الأسود"], choices_en: ["Return to Mt. Sagiri", "Set your heart ablaze", "Destroy Muzan immediately", "Keep your black blade"], correct: 1 },
+        { text_ar: "كيف تمكن الشيطان أكازا من النجاة والهروب من رينغوكو وتانجيرو في نهاية المعركة؟", text_en: "How did the demon Akaza manage to survive and escape from Rengoku and Tanjiro at the end?", choices_ar: ["بفتح بوابة البيوا", "بالركض بسرعة نحو ظلال الغابة مع شروق الشمس", "بتحويل جسده لغبار", "بهزيمة تانجيرو"], choices_en: ["Opening Biwa gate", "Running into forest shadows as sun rose", "Turning body to dust", "Defeating Tanjiro"], correct: 1 },
+        { text_ar: "ما هو الوصف الغاضب والشهير الذي صرخ به تانجيرو باكياً وهو يرمي سيفه خلف أكازا الهارب؟", text_en: "What famous furious statement did Tanjiro cry out while throwing his sword after the fleeing Akaza?", choices_ar: ["أنت أقوى شيطان", "فيلق قاتلي الشياطين يقاتلكم دائماً في ظروف غير عادلة، وأنت جبان هارب!", "سأقتلك غداً", "رينغوكو هو من خسرت المعركة"], choices_en: ["You are the strongest", "The Slayer Corps fights in unfair conditions, you coward fleeing!", "I kill you tomorrow", "Rengoku lost the fight"], correct: 1 }
+    ],
+    16: [
+        { text_ar: "من هو الهاشيرا الاستعراضي وصاحب الهاؤوري البراق الذي قاد الأبطال للتسلل إلى منطقة الترفيه؟", text_en: "Which flamboyant Hashira led the heroes to infiltrate the Entertainment District?", choices_ar: ["تينغين أوزوي (هاشيرا الصوت)", "أوباناي إيغورو", "مويشيرو توكيتو", "سانيمي شينازوغاوا"], choices_en: ["Tengen Uzui (Sound Hashira)", "Obanai Iguro", "Muichiro Tokito", "Sanemi Shinazugawa"], correct: 0 },
+        { text_ar: "ما هو السبب والهدف الأساسي الذي جعل تينغين أوزوي يتوجه للتسلل داخل منطقة الترفيه؟", text_en: "What was Tengen Uzui's primary goal for infiltrating the Entertainment District?", choices_ar: ["البحث عن سيف قديم", "إنقاذ زوجاته الثلاث النينجا المختفيات هناك", "اصطياد موزان", "شراء مستلزمات طبية"], choices_en: ["Search for old sword", "Rescue his three ninja wives missing there", "Hunting Muzan", "Buying medical supplies"], correct: 1 },
+        { text_ar: "ما هي الحيلة الكوميدية التي استخدمها تينغين أوزوي لإدخال الأبطال للتجسس داخل منطقة الترفيه؟", text_en: "What hilarious tactic did Tengen Uzui use to get Tanjiro, Zenitsu, and Inosuke into the brothels?", choices_ar: ["تنكروا في زي حراس", "ألبسهم ملابس فتيات بمكياج صارخ كخادمات", "جعلهم يختبئون في صناديق", "دخلوا كعازفي طبول"], choices_en: ["Disguised as guards", "Dressed them as girls with loud makeup as maids", "Hid them in boxes", "Entered as drummers"], correct: 1 },
+        { text_ar: "ما هو الاسم المستعار والمضحك الذي أُطلق على زينيتسو أغاتسوما أثناء تنكره كفتاة عازفة شاميسين؟", text_en: "What funny alias was given to Zenitsu Agatsuma while disguised as a Shamisen-playing girl?", choices_ar: ["سوميكو", "زينكو", "إنوكو", "كاناكو"], choices_en: ["Sumiko", "Zenko", "Inoko", "Kanako"], correct: 1 },
+        { text_ar: "كم عدد الزوجات اللواتي يمتلكهن هاشيرا الصوت تينغين أوزوي واللواتي ينتمين لعشائر الشينوبي؟", text_en: "How many wives does the Sound Hashira Tengen Uzui have, all belonging to Shinobi clans?", choices_ar: ["زوجة واحدة", "زوجتان", "3 زوجات", "4 زوجات"], choices_en: ["1 wife", "2 wives", "3 wives (Suma, Makio, Hinatsuru)", "4 wives"], correct: 2 }
+    ],
+    17: [
+        { text_ar: "ما اسم الـشيطانة الفاتنة وصاحبة الأوشحة الحية التي كانت تسيطر على منطقة الترفيه تحت قناع غيشا؟", text_en: "What is the name of the beautiful demon with living sashes controlling the Entertainment District?", choices_ar: ["ناكيمي", "داكي", "تامايو", "سوسامارو"], choices_en: ["Nakime", "Daki", "Tamayo", "Susamaru"], correct: 1 },
+        { text_ar: "أين كانت الشيطانة داكي تخبئ وتسجن الضحايا والنساء اللواتي تختطفهن جوه منطقة الترفيه؟", text_en: "Where did the demon Daki hide and imprison the victims and women she abducted?", choices_ar: ["في كهف جبلي", "داخل تجاويف وشاح الأوبي بمخبأ تحت الأرض", "في القلعة اللانهائية", "تحت عجلات القطار"], choices_en: ["In mountain cave", "Inside the cavities of her magic Obi sash underground", "In Infinity Castle", "Under train wheels"], correct: 1 },
+        { text_ar: "ما الذي حدث لنيزوكو كامادو أثناء قتالها العنيف لإنقاذ تانجيرو ضد داكي وجعلها تفقد السيطرة؟", text_en: "What happened to Nezuko Kamado during her brutal fight against Daki, causing her to lose control?", choices_ar: ["نمت لها أجنحة", "ضخمت ونبت لها قرن شيطاني وفقدت عقلها", "تحولت إلى صورة صغيرة", "أصيبت بشلل كامل"], choices_en: ["Grew wings", "Grew larger with a horn, losing human mind entirely", "Turned into tiny form", "Suffered complete paralysis"], correct: 1 },
+        { text_ar: "كيف استطاع تانجيرو تهدئة نيزوكو الهائجة ومنعها من مهاجمة البشر الأبرياء بعد تحولها الشيطاني؟", text_en: "How did Tanjiro calm down the raging Nezuko and prevent her from attacking innocent humans?", choices_ar: ["بضربها بالسيف", "بضمها بقوة والغناء لها بأغنية المهد القديمة لوالدتهما", "بوضع الصندوق فوقها", "برمي ماء مقدس عليها"], choices_en: ["Hitting her with sword", "Holding her tight and singing her mother's old lullaby", "Placing the box over her", "Throwing holy water on her"], correct: 1 },
+        { text_ar: "من هو الـشيطان الحقيقي وصاحب الرتبة العليا السادسة الفعلي المخبأ داخل جسد داكي؟", text_en: "Who is the real Upper Moon 6 demon hidden inside Daki's body who emerged when her head was cut?", choices_ar: ["أكازا", "غيوتارو (شقيق داكي)", "هانتينغو", "كاوغاي"], choices_en: ["Akaza", "Gyutaro (Daki's brother)", "Hantengu", "Kyogai"], correct: 1 }
+    ],
+    18: [
+        { text_ar: "ما هو السلاح الأساسي والقاتل الذي يستخدمه شيطان الرتبة العليا السادسة غيوتارو في قتاله ضد أوزوي؟", text_en: "What is the primary and lethal weapon used by Upper Moon 6 Gyutaro in his fight against Uzui?", choices_ar: ["سيوف حديدية عريضة", "مناجل دموية مشبعة بسم قاتل لا علاج له", "خيوط فولاذية", "مطرقة حديدية عملاقة"], choices_en: ["Broad iron swords", "Blood sickles coated with incurable deadly poison", "Steel threads", "Giant iron hammer"], correct: 1 },
+        { text_ar: "ما هو الشرط التعجيزي والخدعة الفريدة التي تمنع غيوتارو وداكي من الموت حتى لو قُطعت رؤوسهما؟", text_en: "What is the absolute condition and unique trick that prevents Gyutaro and Daki from dying?", choices_ar: ["يجب حرقهما بالنار", "يجب قطع رقبتيهما معاً في نفس الوقت بالتمام", "يجب تدمير قلوبهما", "لا يمكن قتلهما إلا بضوء الشمس"], choices_en: ["Must be burned with fire", "Both of their necks must be severed at the exact same time", "Hearts must be destroyed", "Can only be killed by sunlight"], correct: 1 },
+        { text_ar: "ما هو الأسلوب القتالي والسمعي الفريد والمتقدم الذي ابتكره هاشيرا الصوت تينغين أوزوي لقراءة حركات الخصم؟", text_en: "What unique, advanced combat style did Sound Hashira Tengen Uzui create to read opponent moves?", choices_ar: ["رقصة الرعد", "تقنية النوتة الموسيقية (Musical Score)", "صدى الصوت المطلق", "إدراك الوحش السمعي"], choices_en: ["Thunder Dance", "Musical Score Technique", "Absolute Sonic Echo", "Beast Auditory Awareness"], correct: 1 },
+        { text_ar: "من هي زوجة النينجا التابعة لأوزوي التي ضحت بنفسها وأطلقت أمطاراً من السهام المسمومة بالبوستارية؟", text_en: "Which of Uzui's ninja wives fired a rain of Wisteria-poisoned kunai to pin down Gyutaro?", choices_ar: ["سما", "ماكيو", "هيناتسورو", "أوي"], choices_en: ["Suma", "Makio", "Hinatsuru", "Aoi"], correct: 2 },
+        { text_ar: "ما هي الإصابة الجسدية البالغة والصادمة التي تعرض لها تينغين أوزوي وأدت لاعتزاله القتال؟", text_en: "What severe physical injury did Tengen Uzui suffer, leading to his retirement as an active Hashira?", choices_ar: ["شلل في قدميه", "قطع يده اليسرى وفقء عينه اليسرى", "فقدان حاسة السمع", "كسر في عموده الفقري"], choices_en: ["Paralysis in legs", "Loss of his left hand and left eye", "Loss of hearing sense", "Spine fracture"], correct: 1 }
+    ],
+    19: [
+        { text_ar: "كيف تمكن الأبطال من النجاة وتطهير أجسادهم من سم غيوتارو القاتل بعد انتهاء المعركة وسقوط الجميع؟", text_en: "How did the heroes survive and purge Gyutaro's deadly poison from their bodies?", choices_ar: ["باستخدام ترياق شينوبو", "بفضل فن الدم الشيطاني لنيزوكو (انفجار الدم)", "بشرب ماء جبل ساغيري", "بالشفاء الطبيعي بمرور الوقت"], choices_en: ["Using Shinobu's antidote", "Thanks to Nezuko's Blood Demon Art (Exploding Blood)", "Drinking Mt. Sagiri water", "Natural healing over time"], correct: 1 },
+        { text_ar: "من هو الهاشيرا العبوس وصاحب الثعبان الذي وصل متأخراً بعد المعركة وبدأ يوبخ أوزوي المعتزل ببرود؟", text_en: "Which sullen Hashira with a snake arrived late after the battle and coldly scolded the retiring Uzui?", choices_ar: ["غيومي هيميجيما", "أوباناي إيغورو (هاشيرا الثعبان)", "سانيمي شينازوغاوا", "مويشيرو توكيتو"], choices_en: ["Gyomei Himejima", "Obanai Iguro (Snake Hashira)", "Sanemi Shinazugawa", "Muichiro Tokito"], correct: 1 },
+        { text_ar: "ما هي الحقيقة المحزنة لماضي داكي وغيوتارو البشري قبل أن يحولهما دوما إلى شياطين؟", text_en: "What is the tragic past of Daki and Gyutaro as humans before Doma turned them into demons?", choices_ar: ["كانا من عائلة ملكية", "ولدا في فقر شديد بالأحياء الفقيرة وحُرقت داكي حية", "كانا مقاتلي سيوف فاشلين", "كانا يعيشان في معبد معزول"], choices_en: ["From a royal family", "Born in extreme poverty, Daki was burned alive", "Failed swordsmen", "Lived in isolated temple"], correct: 1 },
+        { text_ar: "ما اسم الشيطان صاحب الرتبة العليا الثانية الحالي الذي التقى بداكي وغيوتارو في ماضيهما وحولهما؟", text_en: "What is the name of the current Upper Moon 2 demon who met Daki and Gyutaro and turned them?", choices_ar: ["أكازا", "دوما", "kukkshibo", "هانتينغو"], choices_en: ["Akaza", "Doma", "Kokushibo", "Hantengu"], correct: 1 },
+        { text_ar: "ما هي النتيجة التاريخية والصادمة لموت داكي وغيوتارو بالنسبة لفيلق قاتلي الشياطين وموزان؟", text_en: "What historical result did the death of Daki and Gyutaro represent for the Corps?", choices_ar: ["أول موت لشيطان رتبة عليا منذ 113 سنة", "تدمير مقر موزان", "اعتزال جميع الهاشيرا", "شفاء نيزوكو بالكامل"], choices_en: ["First death of an Upper Moon in 113 years", "Destruction of Muzan's base", "Retirement of all Hashira", "Full recovery of Nezuko"], correct: 0 }
+    ],
+    20: [
+        { text_ar: "أين استدعى موزان كيبوتسوجي بقية الأقمار العليا الخمسة بعد صدمة موت غيوتارو وداكي؟", text_en: "Where did Muzan Kibutsuji summon the remaining five Upper Moons after the shock?", choices_ar: ["في غابة ناتاغومو", "في البعد اللانهائي داخل القلعة اللانهائية (Infinity Castle)", "في قصر الفراشة", "في مدينة أساكوسا"], choices_en: ["In Natagumo forest", "In the spatial dimension inside the Infinity Castle", "In Butterfly Mansion", "In Asakusa city"], correct: 1 },
+        { text_ar: "من هو شيطان الرتبة العليا الأولى الأقوى والأقدم الذي ظهر في الاجتماع بست عيون مريبة وسيف نسيجي؟", text_en: "Who is the strongest and oldest Upper Moon 1 demon who appeared in the meeting with six eyes?", choices_ar: ["أكازا", "دوما", "كوكوشيبو", "غيوكو"], choices_en: ["Akaza", "Doma", "Kokushibo", "Gyokko"], correct: 2 },
+        { text_ar: "ما هي العلاقة والمشاعر القائمة والواضحة بين الشياطين أكازا ودوما كما ظهر في الاجتماع؟", text_en: "What is the clear relationship and dynamic between the demons Akaza and Doma?", choices_ar: ["صداقة حميمة", "كره شديد وعداء من أكازا لدوما لدرجة لكمه وقطع فكه", "تحالف سري ضد كوكوشيبو", "لا يهتمان ببعضهما مطلقاً"], choices_en: ["Warm friendship", "Extreme hatred from Akaza to Doma, punching his jaw off", "Secret alliance against Upper 1", "No care for each other at all"], correct: 1 },
+        { text_ar: "ما اسم شيطان الرتبة العليا الخامسة غريب الأطوار الذي يعيش داخل الجرار والخزفيات السحرية؟", text_en: "What is the name of the eccentric Upper Moon 5 demon who lives inside magical pots?", choices_ar: ["هانتينغو", "غيوكو", "كاوغاي", "روغورو"], choices_en: ["Hantengu", "Gyokko", "Kyogai", "Roguro"], correct: 1 },
+        { text_ar: "ما اسم شيطان الرتبة العليا الرابعة العجوز والجبان الذي يرتعد دائماً وينقسم لنسخ تجسد مشاعره؟", text_en: "What is the name of the cowardly old Upper Moon 4 demon who constantly trembles and splits?", choices_ar: ["هاتينغو (Hantengu)", "غيوكو", "ناكيمي", "إنمو"], choices_en: ["Hantengu", "Gyokko", "Nakime", "Enmu"], correct: 0 }
+    ],
+    21: [
+        { text_ar: "إلى أين توجه تانجيرو كامادو لاستبدال وإصلاح سيفه بعد رفض هاغانيزوكا العنيد لصناعته؟", text_en: "Where did Tanjiro Kamado head to replace and fix his sword after Haganezuka's refusal?", choices_ar: ["جبل ساغيري", "قرية صانعي السيوف السرية (Swordsmith Village)", "منطقة الضوء الأحمر", "قصر الفراشة"], choices_en: ["Mount Sagiri", "The secret Swordsmith Village", "Red Light District", "Butterfly Mansion"], correct: 1 },
+        { text_ar: "ما اسم دمية التدريب الآلية والميكانيكية الأسطورية المبنية على هيئة مستخدم تنفس الشمس الأول وتمتلك 6 أذرع؟", text_en: "What is the name of the 6-armed mechanical training doll modeled after the first Sun Breather?", choices_ar: ["يوريتشي النمط صفر (Yoriichi Type Zero)", "كوكوشيبو 2", "آلة الفيلق المدمرة", "دمية هاغانيزوكا"], choices_en: ["Yoriichi Type Zero", "Kokushibo Type 2", "Corps Destroyer Machine", "Haganezuka Doll"], correct: 0 },
+        { text_ar: "لماذا تم تصميم دمية التدريب 'يوريتشي النمط صفر' بستة أذرع كاملة بدلاً من ذراعين كالبشر؟", text_en: "Why was the 'Yoriichi Type Zero' training doll designed with six arms instead of two?", choices_ar: ["لضرب مستخدمين متعددين معاً", "لأن محاكاة حركات وسرعة المقاتل يوريتشي مستحيلة بأقل من 6 أذرع", "بسبب خطأ في التصميم القديم", "لحمل سيوف مختلفة الأنواع"], choices_en: ["To hit multiple slayers", "Simulating Yoriichi's movements was impossible with fewer arms", "Old design blueprint flaw", "To carry different sword types"], correct: 1 },
+        { text_ar: "من هو الهاشيرا العبقري صغير السن وصاحب تنفس الضباب الذي كان يتدرب بقسوة على الدمية؟", text_en: "Which young prodigy and Mist Hashira was training harshly on the doll?", choices_ar: ["مويشيرو توكيتو (هاشيرا الضباب)", "أوباناي إيغورو", "جينيا شينازوغاوا", "غيومي هيميجيما"], choices_en: ["Muichiro Tokito (Mist Hashira)", "Obanai Iguro", "Genya Shinazugawa", "Gyomei Himejima"], correct: 0 },
+        { text_ar: "ما هو الشيء الثمين والتاريخي الذي وجده تانجيرو مخبأ داخل هيكل الدمية بعد أن حطمها؟", text_en: "What precious historical item did Tanjiro find hidden inside the doll's structure?", choices_ar: ["سيف قديم وصدئ يعود لأكثر من 300 سنة لمبتكر التنفس", "مذكرات موزان", "ترياق ضد تحول الشياطين", "قناع أوكوداكي القديم"], choices_en: ["An old rusty 300-year-old sword of the original breather", "Muzan's personal diary", "Antidote against demon turning", "Urokodaki's ancient mask"], correct: 0 }
+    ],
+    22: [
+        { text_ar: "ما هي القدرة المرعبة وفن الدم الشيطاني الخاص بالقمر الأعلى الرابع هانتينغو عند قطع رأسه؟", text_en: "What is the terrifying Blood Demon Art ability of Upper Moon 4 Hantengu when his head is cut?", choices_ar: ["يذوب في الظلام", "ينقسم إلى عدة نسخ شابة تجسد مشاعر مختلفة", "يستدعي جيشاً من العناكب", "يحول القرية لرماد"], choices_en: ["Melting in darkness", "Splitting into clones embodying different emotions", "Summoning spider army", "Turning village to ashes"], correct: 1 },
+        { text_ar: "ما اسم المقاتل الشاب غريب الأطوار وشقيق سانيمي الذي يقاتل باستخدام بندقية وسيف معاً؟", text_en: "What is the name of the eccentric young slayer and Sanemi's brother who fights with a shotgun?", choices_ar: ["جينيا شينازوغاوا", "موراتا", "كازومي", "سينجورو"], choices_en: ["Genya Shinazugawa", "Murata", "Kazumi", "Senjuro"], correct: 0 },
+        { text_ar: "ما هي القدرة الصادمة وغير الطبيعية التي يمتلكها جينيا شينازوغاوا لتعويض عدم قدرته على استخدام التنفس؟", text_en: "What shocking ability does Genya Shinazugawa possess to compensate for his lack of breathing style?", choices_ar: ["يمتلك درعاً سحرياً", "يستطيع أكل لحم الشياطين مؤقتاً لاكتساب قواهم وتجددهم", "سرعة البرق", "الطيران في الهواء"], choices_en: ["Possessing magic shield", "Eating demon flesh temporarily to gain their powers & cell regeneration", "Lightning reflex speed", "Flying in midair"], correct: 1 },
+        { text_ar: "ما اسم نسخة مشاعر الغضب التابعة لهانتينغو والتي تحمل سلاح عصا الـ 'خاخاجو' وتطلق صواعق برقية؟", text_en: "What is the name of Hantengu's anger clone who carries a Khakkhara staff?", choices_ar: ["سكيدو (Sekido)", "كار اكو", "آيزيتسو", "أوروجي"], choices_en: ["Sekido", "Karaku", "Aizetsu", "Urogi"], correct: 0 },
+        { text_ar: "ما هي الهاشيرا المبتهجة وصاحبة الضفائر الوردية والخضراء التي وصلت لإنقاذ تانجيرو بسيفها المرن؟", text_en: "Which cheerful Hashira with pink and green braids arrived to save Tanjiro with her flexible blade?", choices_ar: ["شينوبو كوتشو", "ميتسوري كانروجي (هاشيرا الحب)", "كاناي كوتشو", "أوي كانزاكي"], choices_en: ["Shinobu Kocho", "Mitsuri Kanroji (Love Hashira)", "Kanae Kocho", "Aoi Kanzaki"], correct: 1 }
+    ],
+    23: [
+        { text_ar: "أين حجز وشلّ شيطان الرتبة العليا الخامسة غيوكو هاشيرا الضباب مويشيرو توكيتو وحرمه من التنفس؟", text_en: "Where did Upper Moon 5 Gyokko trap and paralyze Mist Hashira Muichiro Tokito?", choices_ar: ["داخل صندوق خشبي", "داخل وعاء وقبة مائية سحرية خانقة", "في القلعة اللانهائية", "تحت صخرة عملاقة"], choices_en: ["Inside a wooden box", "Inside a magical suffocating Water Prison Pot", "In the Infinity Castle", "Under a giant rock"], correct: 1 },
+        { text_ar: "من هو طفل القرية الصغير الشجاع الذي خاطر بحياته ونفخ الهواء داخل وعاء ماء غيوكو لإنقاذ توكيتو؟", text_en: "Who is the brave village boy who risked his life and blew air into Gyokko's water pot?", choices_ar: ["كوتيتسو", "تيتشين", "هوتارو", "كاناماموري"], choices_en: ["Kotetsu", "Tecchin", "Hotaru", "Kanamamori"], correct: 0 },
+        { text_ar: "ما الذي أيقظه وتذكره مويشيرو توكيتو داخل السجن المائي وساعده في إيقاظ 'علامة قاتل الشياطين'؟", text_en: "What did Muichiro Tokito remember inside the water prison that helped him awaken his Mark?", choices_ar: ["كلمات موزان", "ماضيه المأساوي المنسي وموت شقيقه التوأم يويشيرو", "تدريب أوكوداكي", "كيفية صناعة السيوف"], choices_en: ["Muzan's words", "His forgotten tragic past and death of his twin brother Yuichiro", "Urokodaki's training", "How to forge swords"], correct: 1 },
+        { text_ar: "ما هي الهيئة والتقنية التنفسية المبتكرة والخاصة جداً التي شنها توكيتو لتضليل غيوكو وقطع رأسه؟", text_en: "What innovative breathing form did Tokito unleash to mislead Gyokko and decapitate him?", choices_ar: ["تنفس الضباب: الهيئة السابعة (أوبورو)", "تنفس الماء: الهيئة الحادية عشرة", "تنفس اللهب: الهيئة الخامسة", "تنفس الوحش"], choices_en: ["Mist Breathing: 7th Form (Oboro)", "Water Breathing: 11th Form", "Flame Breathing: 5th Form", "Beast Breathing Style"], correct: 0 },
+        { text_ar: "ماذا كان يفعل صانع السيوف هاغانيزوكا هوتارو بتركيز أسطوري رافضاً التوقف حتى عندما كان غيوكو يهاجمه؟", text_en: "What was swordsmith Haganezuka Hotaru doing with legendary focus, refusing to stop?", choices_ar: ["كان يركض هارباً", "كان يصقل ويسن السيف الأثري القديم لتانجيرو", "كان يصنع قناعاً جديداً", "كان نائماً"], choices_en: ["Running away fleeing", "Sharpening and polishing Tanjiro's 300-year-old ancient sword", "Crafting a new mask", "Sleeping soundly"], correct: 1 }
+    ],
+    24: [
+        { text_ar: "ما اسم الكيان والنسخة المدمجة والنهائية المرعبة لهانتينغو التي ظهرت وتحكم في التنانين الخشبية؟", text_en: "What is the name of the ultimate combined clone of Hantengu controlling wooden dragons?", choices_ar: ["زوهوكوتين (Zohakuten)", "سكيدو", "أكازا", "روي"], choices_en: ["Zohakuten", "Sekido", "Akaza", "Rui"], correct: 0 },
+        { text_ar: "ما هي الأداة والأسلوب الذي يستخدمه شيطان الدمج زوهوكوتين لشن هجمات موجات ضغط مدمرة؟", text_en: "What tool does the combined demon Zohakuten use to unleash pressure wave attacks?", choices_ar: ["عزف البيوا", "ضرب الطبول الطائرة العائمة خلف ظهره", "الصراخ بالفم فقط", "رمي مناجل سامة"], choices_en: ["Playing the Biwa", "Striking the floating drums behind his back", "Screaming via mouth only", "Throwing toxic sickles"], correct: 1 },
+        { text_ar: "ما هو التغيير الغريب وغير الطبيعي في جسد وعضلات هاشيرا الحب ميتسوري كانروجي الذي يمنحها قوة؟", text_en: "What physical anomaly in Love Hashira Mitsuri Kanroji's muscles grants her power?", choices_ar: ["عظامها من حديد النيشيرين", "كثافة عضلاتها تفوق البشر بثمانية أضعاف", "تمتلك قلباً ثانياً", "تتنفس تحت الماء"], choices_en: ["Bones made of Nichirin", "Her muscle density is eight times higher than normal humans", "Has a second heart", "Breathes underwater"], correct: 1 },
+        { text_ar: "ما هو السبب الحقيقي وراء تحول لون شعر ميتسوري كانروجي الطبيعي إلى الوردي والأخضر الساطع؟", text_en: "What is the true reason Mitsuri Kanroji's hair turned to its current pink and green color?", choices_ar: ["صبغة شعر في القرية", "تناولها لـ 170 حبة من حلوى 'ساكورا موتشي' يومياً بطفولتها", "إصابة من سيف لهب", "لعنة شيطانية قديمة"], choices_en: ["Hair dye in the village", "Eating 170 Sakura Mochi sweets daily in her childhood", "Injury from a flame blade", "Ancient demonic curse"], correct: 1 },
+        { text_ar: "أين يختبئ الجسد الحقيقي الصغير جداً والأصلي للشيطان هانتينغو والذي توجب على تانجيرو قطعه؟", text_en: "Where is the true, tiny, original body of Hantengu hiding that Tanjiro had to decapitate?", choices_ar: ["داخل قلب التنين الخشبي", "داخل قلب نسخة زوهوكوتين", "في الأرض تحت القرية", "مخترق جوه لسان شيطان الاستياء الضخم"], choices_en: ["Inside the wood dragon heart", "Inside Zohakuten's heart clone", "In the ground below village", "Deep inside the tongue of the large Resentment demon"], correct: 3 }
+    ],
+    25: [
+        { text_ar: "ما هو المأزق المستحيل والاختيار المأساوي الذي واجهه تانجيرو قبل شروق الشمس بالقرية؟", text_en: "What impossible dilemma did Tanjiro face in the final moments before sunrise?", choices_ar: ["إنقاذ سيفه أو قتال زوهوكوتين", "الاختيار بين حماية أخته نيزوكو من الشمس أو الركض لقطع رأس هانتينغو", "مواجهة موزان أو إنقاذ جينيا", "الهروب أو الموت"], choices_en: ["Saving sword or fighting Zohakuten", "Choosing between protecting Nezuko from sun or decapitating Hantengu", "Facing Muzan or saving Genya", "Escaping or dying"], correct: 1 },
+        { text_ar: "ما هي التضحية والمعجزة التاريخية الخارقة التي قامت بها نيزوكو كامادو لتنقذ موقف تانجيرو؟", text_en: "What historic, miraculous sacrifice did Nezuko Kamado make to push Tanjiro to act?", choices_ar: ["حفرت حفرة عميقة", "ركلت تانجيرو نحو الشيطان وضحت بنفسها تحت الشمس وقاومتها", "صنعت درعاً من الجليد", "طارت في الهواء"], choices_en: ["Dug a deep escape pit", "Kicked Tanjiro towards the demon, exposing herself to the sun and conquering it", "Crafted an ice shield", "Flew into midair"], correct: 1 },
+        { text_ar: "ما هي الكلمة البسيطة الأولى والأثمن التي نطقتها نيزوكو كامادو بعد قهرها للشمس؟", text_en: "What was the first, most precious word Nezuko Kamado uttered after conquering the sun?", choices_ar: ["تانجيرو", "صباح الخير (أوهايو)", "سايونارا", "نيزوكو"], choices_en: ["Tanjiro", "Good morning (Ohayou)", "Sayonara", "Nezuko"], correct: 1 },
+        { text_ar: "كيف استقبل موزان كيبوتسوجي خبر قهر نيزوكو لأشعة الشمس واكتسابها الحصانة؟", text_en: "How did Muzan Kibutsuji receive the news of Nezuko conquering the sunlight?", choices_ar: ["بكى خوفاً", "جن جنونه واهتز فرحاً وسعادة عارمة لأن هدف الخلود قد اقترب بالتهامها", "قرر الهروب", "قتل بقية شياطينه"], choices_en: ["Cried out of fear", "Became ecstatically overjoyed because devouring her gives him absolute immortality", "Decided to run away", "Slaughtered rest of his demons"], correct: 1 },
+        { text_ar: "ما هي زهرة النبات الأسطورية والنادرة التي يبحث عنها موزان كيبوتسوجي لألف عام؟", text_en: "What is the legendary, rare flower that Muzan Kibutsuji has sought for a thousand years?", choices_ar: ["زهرة الوستارية البنفسجية", "زهرة زنبق العنكبوت الأزرق (Blue Spider Lily)", "زهرة الشمس الحمراء", "زهرة جبل ساغيري"], choices_en: ["Purple Wisteria flower", "Blue Spider Lily", "Red Sun flower", "Mount Sagiri flower"], correct: 1 }
+    ],
+    26: [
+        { text_ar: "[سؤال صوتي] اضغط للاستماع للصوت المرفق. من صاحب هذه الصرخة الجبانة والحماسية الكوميدية الشهيرة؟", text_en: "[Audio Question] Click to listen to the clip. Who owns this famous comedic scream?", choices_ar: ["تانجيرو كامادو", "زينيتسو أغاتسوما", "إينوسوكي هاشيبارا", "موراتا"], choices_en: ["Tanjiro Kamado", "Zenitsu Agatsuma", "Inosuke Hashibira", "Murata"], correct: 1, audio: "audio_scream.mp3" },
+        { text_ar: "ما هي المرحلة الأولى من 'تدريبات الهاشيرا' المكثفة لتأهيل المقاتلين والتي كان يقودها تينغين أوزوي؟", text_en: "What was the first stage of the rigorous 'Hashira Training' led by Tengen Uzui?", choices_ar: ["تدريب مرونة العضلات", "تدريب القدرة البدنية الأساسية والجري والتحمل الشاق", "قتال بالسيوف الحقيقية", "تفجير القرع"], choices_en: ["Muscle flexibility training", "Basic stamina, running and intense endurance training", "Real sword combat training", "Gourd exploding training"], correct: 1 },
+        { text_ar: "من هو الهاشيرا الأعمى والأقوى بدنياً في الفيلق بأكمله الذي قاد تدريب التحمل العضلي تحت الشلالات؟", text_en: "Who is the blind and physically strongest Hashira who led training under waterfalls?", choices_ar: ["سانيمي شينازوغاوا", "غيومي هيميجيما (هاشيرا الصخر)", "أوباناي إيغورو", "غيو توميوكا"], choices_en: ["Sanemi Shinazugawa", "Gyomei Himejima (Stone Hashira)", "Obanai Iguro", "Giyu Tomioka"], correct: 1 },
+        { text_ar: "ما هو السلاح الميكانيكي والفريد الذي يقاتل به هاشيرا الصخر غيومي هيميجيما بدلاً من الكاتانا؟", text_en: "What unique mechanical weapon does Stone Hashira Gyomei Himejima fight with?", choices_ar: ["مطرقة حديدية عريضة", "فأس ضخمة متصلة بسلسلة طويلة تنتهي بكرة حديدية شائكة", "درع حديدي مسنن", "بندقية صيد نيشيرين"], choices_en: ["Broad iron hammer", "Massive axe linked by chain to a spiked iron flail ball", "Serrated iron shield", "Nichirin hunting shotgun"], correct: 1 },
+        { text_ar: "من هو الهاشيرا الغامض الذي قاد تدريب مراجعة حركات السيوف والدقة وكان يربط المقاتلين كعوائق؟", text_en: "Which mysterious Hashira led the sword precision training, tying slayers as obstacles?", choices_ar: ["أوباناي إيغورو (هاشيرا الثعبان)", "مويشيرو توكيتو", "سانيمي", "غيو توميوكا"], choices_en: ["Obanai Iguro (Snake Hashira)", "Muichiro Tokito", "Sanemi", "Giyu Tomioka"], correct: 0 }
+    ],
+    27: [
+        { text_ar: "[سؤال صورة] انظري للصورة المرفقة. لمن تعود هذه الأقراط التاريخية (الهانافودا) التي يرتديها تانجيرو؟", text_en: "[Image Question] Look at the image. To whom did these Hanafuda earrings originally belong?", choices_ar: ["ورثها من عائلته وتعود لمبتكر تنفس الشمس يوريتشي", "صنعها أوكوداكي", "هدية من موزان", "شراها من السوق"], choices_en: ["Inherited from family, originally belonging to Sun Breather Yoriichi", "Crafted by Urokodaki", "Gift from Muzan", "Bought from the market"], correct: 0, image: "img_yoriichi_earrings.jpg" },
+        { text_ar: "كيف تمكن موزان كيبوتسوجي من العثور على المقر السري الفخم والمنزل الخاص بالقائد كاغايا؟", text_en: "How did Muzan Kibutsuji manage to find the secret estate of Leader Kagaya?", choices_ar: ["بغارة جوية", "بفضل عيون التجسس الدقيقة لشيطانة البيوا ناكيمي", "جينيا خانه وسلّم الموقع", "تتبع غراب تانجيرو"], choices_en: ["Via an airstrip raid", "Thanks to the microscopic scouting eyes of the Biwa Demon Nakime", "Genya betrayed the location", "Tracked Tanjiro's crow"], correct: 1 },
+        { text_ar: "ما هي المفاجأة والتضحية الانتحارية الصادمة التي جهزها كاغايا أوبوياشيكي لموزان فور دخوله؟", text_en: "What shocking suicidal trap did Kagaya Ubuyashiki spring on Muzan as he entered?", choices_ar: ["ضربه بسيف مخفي", "تفجير منزله ونفسه وزوجته وأولاده بالكامل لشل حركته وتجدده", "إلقاء سم زهرة الوستارية عليه", "استدعاء الهاشيرا في كمين"], choices_en: ["Striking with hidden blade", "Detonating his estate, himself, his wife and kids to halt Muzan's regeneration", "Throwing Wisteria poison at him", "Calling Hashira for immediate ambush"], correct: 1 },
+        { text_ar: "من هي الشيطانة الحليفة التي ظهرت فور الانفجار ودبست قبضتها المحقونة بالسم داخل جسد موزان؟", text_en: "Which allied demon appeared after the explosion and shoved her fist into Muzan's torso?", choices_ar: ["نيزوكو كامادو", "الدكتورة تامايو", "ناكيمي", "داكي"], choices_en: ["Nezuko Kamado", "Dr. Tamayo", "Nakime", "Daki"], correct: 1 },
+        { text_ar: "ما هو الدواء المعقد الذي صنعته تامايو وشينوبو وحُقن به موزان بهدف تدميره من الداخل؟", text_en: "What complex drug crafted by Tamayo and Shinobu was injected into Muzan?", choices_ar: ["سم عناكب حاد", "دواء عقاري مصمم خصيصاً لتحويل الشياطين إلى بشر مجدداً", "مياه مغلية سحرية", "حمض خانق للخلية الشيطانية"], choices_en: ["Sharp spider venom", "A specific multi-stage drug designed to turn demons back into humans", "Magical boiling water", "Choking demonic cell acid"], correct: 1 }
+    ],
+    28: [
+        { text_ar: "[سؤال صوتي] استمع للصوت المرفق. ما اسم هذه الآلة الموسيقية اليابانية التقليدية التي تعزفها ناكيمي؟", text_en: "[Audio Question] Listen to the clip. What is the name of this traditional Japanese instrument played by Nakime?", choices_ar: ["الشاميسين", "البيوا (Biwa)", "الكوتو", "الشاكوهاتشي"], choices_en: ["Shamisen", "Biwa", "Koto", "Shakuhachi"], correct: 1, audio: "audio_biwa.mp3" },
+        { text_ar: "كيف تمكن موزان وناكيمي من احتجاز وتفريق جميع مقاتلي الفيلق والهاشيرا فور وصولهم؟", text_en: "How did Muzan and Nakime capture and separate all the Corps slayers and Hashira?", choices_ar: ["بإطلاق غاز سام", "بفتح آلاف الأبواب المنزلقة تحت أقدامهم ليسقطوا داخل القلعة اللانهائية", "بقتالهم مباشرة", "بحبسهم في أوعية ماء"], choices_en: ["Releasing a toxic gas cloud", "Opening thousands of sliding doors beneath their feet into the Infinity Castle", "Fighting them directly head-on", "Trapping them in water pots"], correct: 1 },
+        { text_ar: "ما هي الرتبة الجديدة والخطيرة التي منحتها دماء موزان لشيطانة البيوا ناكيمي لتصبح من الأقمار العليا؟", text_en: "What dangerous new rank did Muzan's blood grant the Biwa Demon Nakime?", choices_ar: ["القمر الأعلى الرابع الجديد", "القمر الأعلى الخامس", "القمر الأعلى السادس", "القائد العام للشياطين"], choices_en: ["New Upper Moon 4", "Upper Moon 5", "Upper Moon 6", "Supreme Demon Commander"], correct: 0 },
+        { text_ar: "من هو الهاشيرا المتهور والغاضب الذي التقى بتانجيرو كامادو فور سقوطهما في القلعة؟", text_en: "Which Hashira partnered with Tanjiro Kamado right after dropping into the castle?", choices_ar: ["غيو توميوكا", "جينيا", "سانيمي شينازوغاوا", "غيومي هيميجيما"], choices_en: ["Giyu Tomioka", "Genya", "Sanemi Shinazugawa", "Gyomei Himejima"], correct: 0 },
+        { text_ar: "كم عدد الأشكال والضربات الأساسية المكونة لـ 'تنفس الماء' التي ابتكرها غيو توميوكا بنفسه؟", text_en: "Which exclusive Water Breathing form did Giyu Tomioka create himself?", choices_ar: ["الهيئة الحادية عشرة: الهدوء المطلق (Nagi)", "الهيئة الثانية عشرة", "الهيئة العاشرة المطورة", "الهيئة الخامسة السرية"], choices_en: ["11th Form: Dead Calm (Nagi)", "12th Secret Form", "Enhanced 10th Form", "5th Secret Hidden Form"], correct: 0 }
+    ],
+    29: [
+        { text_ar: "[سؤال صورة] انظري للصورة المرفقة. ما هو اللقب والاسم المطلق على رتبة النخبة والمقاتلين التسعة الأقوى؟", text_en: "[Image Question] Look at the image. What is the title given to the nine elite strongest slayers?", choices_ar: ["الكيدزوكي", "الهاشيرا (الركائز)", "الميزونوتو", "الكاكوشي"], choices_en: ["Kizuki", "Hashira (The Pillars)", "Mizunoto", "Kakushi"], correct: 1, image: "img_shinobu_butterfly.jpg" },
+        { text_ar: "من هو شيطان الرتبة العليا السادية والمقيتة الذي التقت به شينوبو كوتشو وكان قد قتل أختها سابقاً؟", text_en: "Which pragmatic Upper Moon demon did Shinobu Kocho encounter, who previously killed her sister?", choices_ar: ["أكازا", "كوكوشيبو", "دوما (القمر الأعلى الثاني)", "كاوغاي"], choices_en: ["Akaza", "Kokushibo", "Doma (Upper Moon 2)", "Kyogai"], correct: 2 },
+        { text_ar: "ما هو السلاح المفضل وفن الدم الشيطاني الملعون والبارد الذي يقاتل به دوما؟", text_en: "What is the favorite weapon and freezing Blood Demon Art used by Doma?", choices_ar: ["مناجل سامة", "مروحتان حربيتان حادتان من الفولاذ الذهبي ويتحكم بالجليد", "خيوط حادة", "جرار فخارية متفجرة"], choices_en: ["Toxic curved sickles", "Two sharp golden steel war fans controlling freezing ice and frost", "Sharp wire threads", "Explosive clay pottery pots"], correct: 1 },
+        { text_ar: "ما هي العقدة الجسدية والنفسية الكبيرة التي اعترفت بها شينوبو لدوما أثناء قتالهما اليائس؟", text_en: "What physical frustration did Shinobu confess to Doma during their desperate battle?", choices_ar: ["خوفها من الظلام", "قصر قامتها وبنيتها الضعيفة التي تجعلها عاجزة عن قطع الرقاب بالسيف", "ضعف بصرها", "كرهها للسيوف"], choices_en: ["Her fear of dark environments", "Her petite stature and small frame making her unable to cut demon necks via blade force", "Her weak eyesight", "Her inner hatred for swords"], correct: 1 },
+        { text_ar: "ما هي صلة القرابة والنسب الصادمة والتاريخية المكتشفة بين هاشيرا الضباب مويشيرو توكيتو والشيطان كوكوشيبو؟", text_en: "What is the shocking bloodline connection discovered between Mist Hashira Muichiro and Kokushibo?", choices_ar: ["لا توجد صلة", "مويشيرو هو سليل مباشر ومن سلالة الدم التابعة لكوكوشيبو البشري", "كوكوشيبو هو عمه", "كوكوشيبو قتل والده فقط"], choices_en: ["No relationship at all", "Muichiro is a direct descendant of Kokushibo's human bloodline line", "Kokushibo is his biological uncle", "Kokushibo only killed his father"], correct: 1 }
+    ],
+    30: [
+        { text_ar: "ما هو أصل وجذر جميع أساليب وتقنيات التنفس الحالية في العالم ومبتكرها هو يوريتشي؟", text_en: "What is the root and origin of all current Breathing Styles in the world?", choices_ar: ["تنفس الماء", "تنفس الشمس (Sun Breathing)", "تنفس اللهب", "تنفس الرعد"], choices_en: ["Water Breathing Style", "Sun Breathing Style", "Flame Breathing Style", "Thunder Breathing Style"], correct: 1 },
+        { text_ar: "كم عدد الأشكال والهيئات الكاملة والصارمة التي تتكون منها تقنية 'تنفس الشمس' الأسطورية؟", text_en: "How many total forms comprise the legendary 'Sun Breathing' technique?", choices_ar: ["10 أشكال", "12 شكلاً", "13 شكلاً بالتمام والكمال", "7 أشكال"], choices_en: ["10 distinct forms", "12 distinct forms", "13 total forms exactly", "7 hidden forms"], correct: 2 },
+        { text_ar: "ما هو الاسم المطلق على الحالة والقدرة البصرية والذهنية المتقدمة التي تجعل المقاتل يرى عضلات الخصم شفافة؟", text_en: "What is the title given to the advanced ability that lets a slayer see an opponent's muscles as transparent?", choices_ar: ["العين الشيطانية", "العالم الشفاف (Transparent World)", "الرؤية الصوتية", "علامة الهاشيرا"], choices_en: ["The Demonic Eye", "Transparent World State", "Acoustic Sonic Vision", "The Hashira Mark Crest"], correct: 1 },
+        { text_ar: "الشيطانة تامايو كانت تحقد على موزان لألف عام لسبب مأساوي محدد؛ ما هو؟", text_en: "Lady Tamayo held a thousand-year grudge against Muzan for a specific tragic reason; what is it?", choices_ar: ["سرق سيفها", "خدعها وحولها لشيطانة مما جعلها تفقد السيطرة وتلتهم عائلتها", "حبسها في القلعة", "قتل مدربها"], choices_en: ["He stole her family sword", "He tricked and turned her into a demon, causing her to lose control and devour her own family", "He imprisoned her in the castle", "He executed her former master"], correct: 1 },
+        { text_ar: "ما هو الوصف واللقب النهائي الذي يطلق عندما ترتفع حرارة سيف النيشيرين ويتحول لونه للأحمر القرمزي؟", text_en: "What is the final term used when a Nichirin blade heats up, turning crimson red?", choices_ar: ["سيف الشمس السحري", "نيشيرين الأحمر القرمزي (Bright Red Nichirin Blade)", "سيف الهينوكامي المطلق", "سيف علامة اللهب"], choices_en: ["Magical Sun Blade", "Bright Red Nichirin Blade", "Ultimate Hinokami Blade", "Flame Mark Crest Sword"], correct: 1 }
+    ]
+};
+// 🧠 دالة تحميل السؤال وعرض البيانات والميديا المتطابقة مع الأسماء الجديدة
+function loadQuestion() {
+    if (currentAudioObj) {
+        currentAudioObj.pause();
+        currentAudioObj = null;
+    }
+
+    for (let lvl in RANK_TITLES) {
+        if (currentLevel >= parseInt(lvl)) {
+            document.getElementById("rankTitle").innerText = RANK_TITLES[lvl];
+        }
+    }
+
+    // جلب الـ Array الخاصة بالمستوى الحالي مباشرة
+    let currentLevelQuestions = QUESTIONS_DATABASE[currentLevel];
+    let currentQ = currentLevelQuestions[currentQuestionIdxInLevel];
+
+    document.getElementById("currentLevel").innerText = currentLevel;
+    document.getElementById("currentQuestionNum").innerText = currentQuestionIdxInLevel + 1;
+    document.getElementById("scoreText").innerText = score;
+
+    // استخدام المسميات الجديدة بالظبط هنا 🌟
+    document.getElementById("questionAr").innerText = currentQ.text_ar;
+    document.getElementById("questionEn").innerText = currentQ.text_en;
+
+    const mediaBox = document.getElementById("mediaBox");
+    const qImage = document.getElementById("qImage");
+    const qAudioBtn = document.getElementById("qAudioBtn");
+
+    if (currentQ.image || currentQ.audio) {
+        mediaBox.style.display = "flex";
+        
+        if (currentQ.image) {
+            qImage.src = currentQ.image;
+            qImage.style.display = "block";
+        } else {
+            qImage.style.display = "none";
+        }
+
+        if (currentQ.audio) {
+            qAudioBtn.style.display = "block";
+            qAudioBtn.onclick = function() {
+                if (currentAudioObj) currentAudioObj.pause();
+                currentAudioObj = new Audio(currentQ.audio);
+                currentAudioObj.play();
+            };
+        } else {
+            qAudioBtn.style.display = "none";
+        }
+    } else {
+        mediaBox.style.display = "none";
+    }
+
+    const optionsBox = document.getElementById("optionsBox");
+    optionsBox.innerHTML = "";
+    
+    // استخدام choices_ar لعرض الخيارات باللغة العربية واستهداف الرقم الصحيح correct
+    currentQ.choices_ar.forEach((optText, index) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerText = optText;
+        btn.onclick = function() { checkAnswer(index, currentQ.correct); };
+        optionsBox.appendChild(btn);
+    });
+}
+    // ==========================================
+    // 2. إدارة الحالة ونظام توقيت استعادة القلوب الشامل (Global State)
+    // ==========================================
+    let appLanguage = 'ar';
+    let isMusicEnabled = true;
+    let isSFXEnabled = true;
+    
+    let currentSlayerName = "";
+    let globalSlayersData = {}; 
+    let activeLevel = 1;
+    let activeQuestionIdx = 0;
+    let currentGatePurpose = "start";
+
+    function initFallingPetals() {
+        const box = document.getElementById('petalsBox');
+        box.innerHTML = "";
+        for (let i = 0; i < 25; i++) {
+            let petal = document.createElement('div');
+            petal.className = 'petal';
+            petal.style.left = Math.random() * 100 + '%';
+            petal.style.width = Math.random() * 12 + 6 + 'px';
+            petal.style.height = Math.random() * 16 + 8 + 'px';
+            petal.style.animationDuration = Math.random() * 5 + 4 + 's';
+            petal.style.animationDelay = Math.random() * 4 + 's';
+            box.appendChild(petal);
+        }
+    }
+
+    // تشغيل الموسيقى فور تفاعل المستخدم مع الصفحة لحل مشكلة قيود المتصفح
+    window.onload = function() {
+        initFallingPetals();
+        loadDataFromStorage();
+        generateInfinityCastleGrid();
+        applyLanguageStrings();
+        setInterval(processHeartsRegeneration, 1000);
+
+        // هنا السحر! أول ما اللمسة أو الضغطة الأولى تحصل في اللعبة، الموسيقى تبدأ فوراً
+        const startMusicOnInteraction = () => {
+            if (isMusicEnabled) {
+                const bg = document.getElementById('audioBg');
+                bg.play().catch(() => {});
+            }
+            // نفك الاستماع بعد أول تفاعل عشان ميتكررش الأمر على الفاضي
+            window.removeEventListener('click', startMusicOnInteraction);
+            window.removeEventListener('touchstart', startMusicOnInteraction);
+        };
+
+        window.addEventListener('click', startMusicOnInteraction);
+        window.addEventListener('touchstart', startMusicOnInteraction);
+    };
+
+    function loadDataFromStorage() {
+        let saved = localStorage.getItem('kimetsu_slayers_db');
+        if(saved) {
+            globalSlayersData = JSON.parse(saved);
+        } else {
+            globalSlayersData = {
+                "Slayer_Tanjiro": { highestLevel: 1, unlockedLevels: [1], scores: 0, currentLives: 5, lastHeartLostTime: null }
+            };
+            saveDataToStorage();
+        }
+    }
+
+    function saveDataToStorage() {
+        localStorage.setItem('kimetsu_slayers_db', JSON.stringify(globalSlayersData));
+    }
+
+    function processHeartsRegeneration() {
+        if (!currentSlayerName || !globalSlayersData[currentSlayerName]) return;
+        let p = globalSlayersData[currentSlayerName];
+
+        if (p.currentLives === undefined) p.currentLives = 5;
+        if (!p.lastHeartLostTime) p.lastHeartLostTime = null;
+
+        if (p.currentLives < 5 && p.lastHeartLostTime) {
+            let now = Date.now();
+            let elapsed = now - p.lastHeartLostTime;
+            let cooldownDuration = 2 * 60 * 1000; 
+
+            if (elapsed >= cooldownDuration) {
+                p.currentLives++;
+                if (p.currentLives < 5) {
+                    p.lastHeartLostTime = now; 
+                } else {
+                    p.lastHeartLostTime = null;
+                }
+                saveDataToStorage();
+                drawMaskHearts();
+            } else {
+                let remainingSecs = Math.ceil((cooldownDuration - elapsed) / 1000);
+                let displayStr = appLanguage === 'ar' ? `استعادة قناع خلال: ${remainingSecs} ث` : `Regen Mask in: ${remainingSecs}s`;
+                document.getElementById('cooldownTimerDisplay').innerText = displayStr;
+                document.getElementById('cooldownTimerDisplay').style.display = 'block';
+                return;
+            }
+        }
+        document.getElementById('cooldownTimerDisplay').style.display = 'none';
+    }
+
+    function drawMaskHearts() {
+        const container = document.getElementById('heartsContainer');
+        container.innerHTML = "";
+        
+        let currentLives = 5;
+        if(currentSlayerName && globalSlayersData[currentSlayerName]) {
+            currentLives = globalSlayersData[currentSlayerName].currentLives;
+        }
+
+        for (let i = 1; i <= 5; i++) {
+            let maskDiv = document.createElement('div');
+            maskDiv.className = "mask-heart";
+            if (i > currentLives) {
+                maskDiv.classList.add('lost');
+            }
+            container.appendChild(maskDiv);
+        }
+    }
+
+    function generateInfinityCastleGrid() {
+        const grid = document.getElementById('levelsGridBox');
+        grid.innerHTML = "";
+        let unlocked = [1];
+        if(currentSlayerName && globalSlayersData[currentSlayerName]) {
+            unlocked = globalSlayersData[currentSlayerName].unlockedLevels || [1];
+        }
+
+        for (let i = 1; i <= 30; i++) {
+            const tile = document.createElement('div');
+            let isUnlocked = unlocked.includes(i);
+            tile.className = `level-tile ${isUnlocked ? 'unlocked' : ''}`;
+            tile.innerHTML = `<span>${i}</span>`;
+            
+            if(!isUnlocked) {
+                tile.innerHTML += `<i class="fa-solid fa-lock level-lock-icon"></i>`;
+            } else {
+                tile.onclick = function() {
+                    let p = globalSlayersData[currentSlayerName];
+                    if (p.currentLives <= 0) {
+                        alert(appLanguage === 'ar' ? "ليس لديك أي أقنعة للقتال! انتظر حتى تنتهي مدة الاستعادة." : "No masks available! Please wait for regeneration.");
+                        return;
+                    }
+                    playSfx('audioClick');
+                    launchCombatLevel(i);
+                };
+            }
+            grid.appendChild(tile);
+        }
+    }
+
+    function triggerPlayerGate(purpose) {
+        currentGatePurpose = purpose;
+        playSfx('audioClick');
+        const combo = document.getElementById('comboPlayersList');
+        combo.innerHTML = `<option value="NEW">${appLanguage==='ar'?'-- سجل لاعب جديد --':'-- Register New Slayer --'}</option>`;
+        
+        for(let name in globalSlayersData) {
+            combo.innerHTML += `<option value="${name}">${name}</option>`;
+        }
+        document.getElementById('playerGateModal').style.display = 'flex';
+        checkPlayerSelection();
+    }
+
+    function checkPlayerSelection() {
+        const combo = document.getElementById('comboPlayersList');
+        document.getElementById('txtNewPlayerName').style.display = (combo.value === "NEW") ? "block" : "none";
+    }
+
+    function actionConfirmPlayerGate() {
+        const combo = document.getElementById('comboPlayersList');
+        let chosenName = combo.value;
+
+        if(chosenName === "NEW") {
+            let inputName = document.getElementById('txtNewPlayerName').value.trim();
+            if(!inputName) {
+                alert(appLanguage === 'ar' ? "ادخل اسم المحارب أولاً!" : "Enter Slayer name first!");
+                return;
+            }
+            if(globalSlayersData[inputName]) {
+                alert(appLanguage === 'ar' ? "هذا الاسم مسجل!" : "Name already exists!");
+                return;
+            }
+            globalSlayersData[inputName] = { highestLevel: 1, unlockedLevels: [1], scores: 0, currentLives: 5, lastHeartLostTime: null };
+            chosenName = inputName;
+            saveDataToStorage();
+        }
+
+        currentSlayerName = chosenName;
+        document.getElementById('playerGateModal').style.display = 'none';
+        document.getElementById('txtNewPlayerName').value = "";
+
+        drawMaskHearts();
+
+        if(currentGatePurpose === "start") {
+            // نوقف نغمة البداية المستمرة للحظة عشان نشغل صوت تانجيرو المميز
+            const bg = document.getElementById('audioBg');
+            bg.pause();
+            
+            playSfx('audioStart');
+            setTimeout(() => {
+                document.getElementById('mainGameContainer').style.backgroundImage = "url('pic2.jpg')";
+                generateInfinityCastleGrid();
+                switchSlide('slideLevelMap');
+                // نرجع نشغل موسيقى الخلفية تكمل معانا في الخريطة
+                if(isMusicEnabled) bg.play().catch(()=>{});
+            }, 600);
+        } else if(currentGatePurpose === "score") {
+            renderHighScoresList();
+        }
+    }
+
+    function renderHighScoresList() {
+        document.getElementById('highScoreViewArea').style.display = "block";
+        const box = document.getElementById('scoreBoardItems');
+        box.innerHTML = "";
+        for(let name in globalSlayersData) {
+            let p = globalSlayersData[name];
+            box.innerHTML += `
+                <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(183,123,244,0.2);">
+                    <span style="color:#e6b800;">${name}</span>
+                    <span>${appLanguage==='ar'?'مستوى':'Lvl'} ${p.highestLevel || 1} (${p.scores || 0} Pts)</span>
+                </div>`;
+        }
+        document.getElementById('overlayMenuPop').style.display = 'flex';
+    }
+
+    function launchCombatLevel(levelNum) {
+        activeLevel = levelNum;
+        activeQuestionIdx = 0;
+        
+        document.getElementById('lblLevelNum').innerText = (appLanguage==='ar'?'المستوى: ':'Level: ') + activeLevel;
+        drawMaskHearts();
+        renderCurrentQuestion();
+        switchSlide('slideCombatZone');
+    }
+
+    function renderCurrentQuestion() {
+        document.getElementById('lblQuestionNum').innerText = `${appLanguage==='ar'?'سؤال':'Q'}: ${activeQuestionIdx + 1}/5`;
+        let currentQuestion = QUESTIONS_DATABASE[activeLevel][activeQuestionIdx];
+        document.getElementById('targetQuestionText').innerText = appLanguage === 'ar' ? currentQuestion.text_ar : currentQuestion.text_en;
+        
+        const grid = document.getElementById('targetAnswersGrid');
+        grid.innerHTML = "";
+
+        let choices = appLanguage === 'ar' ? currentQuestion.choices_ar : currentQuestion.choices_en;
+        choices.forEach((choice, idx) => {
+            let btn = document.createElement('button');
+            btn.className = "answer-choice-btn";
+            btn.innerText = choice;
+            btn.onclick = function() { evaluatePlayerAnswer(idx); };
+            grid.appendChild(btn);
+        });
+    }
+
+    function evaluatePlayerAnswer(chosenIdx) {
+        let currentQuestion = QUESTIONS_DATABASE[activeLevel][activeQuestionIdx];
+        const vfx = document.getElementById('slashVisual');
+        let p = globalSlayersData[currentSlayerName];
+
+        if(chosenIdx === currentQuestion.correct) {
+            vfx.className = "slash-effect slash-correct";
+            vfx.style.display = "block";
+            playSfx('audioClick');
+            p.scores += 15;
+            saveDataToStorage();
+            setTimeout(() => { vfx.style.display = "none"; moveNextStep(); }, 300);
+        } else {
+            vfx.className = "slash-effect slash-wrong";
+            vfx.style.display = "block";
+            playSfx('audioClick');
+            
+            p.currentLives--;
+            if (!p.lastHeartLostTime) {
+                p.lastHeartLostTime = Date.now(); 
+            }
+            saveDataToStorage();
+            drawMaskHearts();
+
+            setTimeout(() => { 
+                vfx.style.display = "none"; 
+                if(p.currentLives <= 0) {
+                    alert(appLanguage === 'ar' ? "انتهت أقنعتك! تم طردك خارج القلعة حتى تستعيد طاقتك." : "Out of masks! Retreting from Infinity Castle.");
+                    actionMenuGoToMap();
+                } else {
+                    moveNextStep();
+                }
+            }, 300);
+        }
+    }
+
+    function moveNextStep() {
+        activeQuestionIdx++;
+        if(activeQuestionIdx < 5) {
+            renderCurrentQuestion();
+        } else {
+            alert(appLanguage === 'ar' ? `نصر ساحق! طهرت المستوى ${activeLevel}` : `Victory! Level ${activeLevel} Cleared!`);
+            let p = globalSlayersData[currentSlayerName];
+            if(!p.unlockedLevels.includes(activeLevel + 1) && activeLevel < 30) {
+                p.unlockedLevels.push(activeLevel + 1);
+            }
+            if(activeLevel > (p.highestLevel || 1)) { p.highestLevel = activeLevel; }
+            saveDataToStorage();
+            actionMenuGoToMap();
+        }
+    }
+
+    function switchSlide(slideId) {
+        document.querySelectorAll('.game-slide').forEach(s => s.classList.remove('active-slide'));
+        document.getElementById(slideId).classList.add('active-slide');
+
+        if(slideId === 'slideMainMenu') {
+            document.getElementById('menuBtn').style.display = "none";
+            document.getElementById('btnBackToMap').style.display = "none";
+            document.getElementById('btnBackToMain').style.display = "none";
+        } else if(slideId === 'slideLevelMap') {
+            document.getElementById('menuBtn').style.display = "block";
+            document.getElementById('btnBackToMap').style.display = "none";
+            document.getElementById('btnBackToMain').style.display = "block";
+        } else if(slideId === 'slideCombatZone') {
+            document.getElementById('menuBtn').style.display = "block";
+            document.getElementById('btnBackToMap').style.display = "block";
+            document.getElementById('btnBackToMain').style.display = "block";
+        }
+    }
+
+    function actionToggleLanguage() {
+        appLanguage = appLanguage === 'ar' ? 'en' : 'ar';
+        document.getElementById('langBtn').innerText = appLanguage === 'ar' ? 'EN' : 'AR';
+        document.body.dir = appLanguage === 'ar' ? 'rtl' : 'ltr';
+        applyLanguageStrings();
+        if(document.getElementById('slideCombatZone').classList.contains('active-slide')) { renderCurrentQuestion(); }
+    }
+
+    function applyLanguageStrings() {
+        document.querySelectorAll('[data-ar]').forEach(el => {
+            el.innerText = appLanguage === 'ar' ? el.getAttribute('data-ar') : el.getAttribute('data-en');
+        });
+    }
+
+    function actionOpenOverlayMenu() { playSfx('audioClick'); document.getElementById('overlayMenuPop').style.display = "flex"; }
+    function actionCloseOverlayMenu() { document.getElementById('overlayMenuPop').style.display = "none"; document.getElementById('highScoreViewArea').style.display = "none"; }
+    function actionMenuGoToMap() { actionCloseOverlayMenu(); generateInfinityCastleGrid(); switchSlide('slideLevelMap'); }
+    function actionMenuGoToMain() { actionCloseOverlayMenu(); document.getElementById('mainGameContainer').style.backgroundImage = "url('pic1.jpg')"; switchSlide('slideMainMenu'); }
+
+    function actionToggleMusic() {
+        isMusicEnabled = !isMusicEnabled;
+        const bg = document.getElementById('audioBg');
+        if(isMusicEnabled) { bg.play().catch(()=>{}); document.getElementById('txtBtnMusic').innerText = appLanguage==='ar'?"الموسيقى: تعمل":"Music: ON"; }
+        else { bg.pause(); document.getElementById('txtBtnMusic').innerText = appLanguage==='ar'?"الموسيقى: معطلة":"Music: OFF"; }
+    }
+
+    function actionToggleSFX() {
+        isSFXEnabled = !isSFXEnabled;
+        document.getElementById('txtBtnSFX').innerText = isSFXEnabled ? (appLanguage==='ar'?"المؤثرات: تعمل":"SFX: ON") : (appLanguage==='ar'?"المؤثرات: معطلة":"SFX: OFF");
+    }
+
+    function playSfx(id) {
+        if(isSFXEnabled) { const s = document.getElementById(id); if(s) { s.currentTime = 0; s.play().catch(()=>{}); } }
+    }
+
+    function actionExitGame() {
+        if(confirm(appLanguage==='ar'?"هل تود الانسحاب؟":"Exit game?")) { alert(appLanguage==='ar'?"سايونارا!":"Sayonara!"); window.close(); }
+    }
+</script>
+
+</body>
+</html>
